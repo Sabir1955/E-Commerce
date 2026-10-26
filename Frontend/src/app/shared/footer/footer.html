@@ -1,0 +1,115 @@
+<footer class="site-footer" role="contentinfo">
+  <!-- Top Highlights Bar -->
+  <div class="footer-highlights">
+    <div class="footer-container highlights-grid">
+      <div class="highlight-item">
+        <span class="highlight-icon" aria-hidden="true">🕉</span>
+        <div class="highlight-text">
+          <strong>100% Certified Authentic</strong>
+          <span>Energized via authentic Vedic rituals</span>
+        </div>
+      </div>
+      <div class="highlight-item">
+        <span class="highlight-icon" aria-hidden="true">🔒</span>
+        <div class="highlight-text">
+          <strong>Secure Easebuzz Payments</strong>
+          <span>UPI, Cards &amp; NetBanking supported</span>
+        </div>
+      </div>
+      <div class="highlight-item">
+        <span class="highlight-icon" aria-hidden="true">📦</span>
+        <div class="highlight-text">
+          <strong>Safe & Express Delivery</strong>
+          <span>Tamper-proof packaging across India</span>
+        </div>
+      </div>
+      <div class="highlight-item">
+        <span class="highlight-icon" aria-hidden="true">✨</span>
+        <div class="highlight-text">
+          <strong>Astrological Guidance</strong>
+          <span>Dedicated support for your sacred journey</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Footer Content -->
+  <div class="footer-main">
+    <div class="footer-container main-grid">
+
+      <!-- Brand & Mission Column -->
+      <div class="footer-col brand-col">
+        <div class="footer-logo">
+          <img src="images/logo.png" alt="Astro Nirvan Logo" class="footer-logo-img">
+          <span class="logo-text">Astro Nirvan · Jyotish Astrology</span>
+        </div>
+        <p class="brand-desc">
+          Your revered destination for authentic Vedic gemstones, sacred brass yantras, mukhi rudrakshas, healing
+          crystals, and customized astrological remedies.
+        </p>
+
+
+        <div class="brand-contact">
+          <p><span class="contact-icon" aria-hidden="true">✉ </span> vaishpoonam340@gmail.com</p>
+          <p><span class="contact-icon" aria-hidden="true">📞</span> +91 9471828554</p>
+          <p><span class="contact-icon" aria-hidden="true">📍</span> Shivani Apartment, North S.K. Puri, Boring Road,
+            Patna 800013</p>
+        </div>
+      </div>
+
+
+      <!-- Quick Links -->
+      <div class="footer-col">
+        <h3 class="col-title">Quick Links</h3>
+        <ul class="footer-links">
+          <li><a routerLink="/">Home</a></li>
+          <li><a routerLink="/products">Sacred Store</a></li>
+          <li><a routerLink="/order-history">Order History &amp; Tracking</a></li>
+          <li><a routerLink="/cart">Shopping Cart</a></li>
+          <li><a href="javascript:void(0)" (click)="scrollToTop($event)" (keydown.enter)="scrollToTop($event)" role="button" aria-label="Scroll back to top">Back to Top</a></li>
+        </ul>
+      </div>
+
+      <!-- Sacred Collections -->
+      <div class="footer-col">
+        <h3 class="col-title">Sacred Remedies</h3>
+        <ul class="footer-links">
+          <li><a routerLink="/products" [queryParams]="{ category: 'Sacred Yantras' }">Navgraha Yantras</a></li>
+          <li><a routerLink="/products" [queryParams]="{ category: 'Gemstones' }">Natural Gemstones</a></li>
+          <li><a routerLink="/products" [queryParams]="{ category: 'Rudraksha' }">Siddha Rudraksha</a></li>
+          <li><a routerLink="/products" [queryParams]="{ category: 'Healing Crystals' }">Healing Crystal Malas</a></li>
+          <li><a routerLink="/products" [queryParams]="{ category: 'Vastu & Feng Shui' }">Vastu Copper Pyramids</a></li>
+        </ul>
+      </div>
+
+      <!-- Customer Care & Policies -->
+      <div class="footer-col">
+        <h3 class="col-title">Customer Care</h3>
+        <ul class="footer-links">
+          <li><a routerLink="/order-history">Returns &amp; Replacement</a></li>
+          <li><a routerLink="/track-order">Track Your Shipment</a></li>
+          <li><a routerLink="/checkout">Payment Options (Easebuzz)</a></li>
+          <li><a routerLink="/forgot-password">Reset Account Password</a></li>
+          <li><a routerLink="/login">Devotee Login</a></li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Bottom Legal & Copyright Bar -->
+  <div class="footer-bottom">
+    <div class="footer-container bottom-flex">
+      <p class="copyright-text">
+        &copy; {{ currentYear }} Jyotish Astrology Store. All sacred rights reserved. Crafted with devotion for your
+        spiritual harmony.
+      </p>
+      <div class="payment-badges" aria-label="Accepted Payment Gateways">
+
+        <span class="badge-item">UPI</span>
+        <span class="badge-item">Credit / Debit Card</span>
+        <span class="badge-item">Net Banking</span>
+      </div>
+    </div>
+  </div>
+</footer>

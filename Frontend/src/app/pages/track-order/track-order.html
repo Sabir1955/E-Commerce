@@ -1,0 +1,151 @@
+<section class="page-title">
+  <div class="sacred-badge">
+    <span class="zodiac-symbol">✦</span>
+    <span>DISPATCH &amp; CONSECRATION TRACKER · यात्रा विवरण</span>
+    <span class="zodiac-symbol">✦</span>
+  </div>
+  <h1>Track Your Order</h1>
+
+  <p class="sanskrit-subtext">शुभ यात्रा · Auspicious Journey of Your Sacred Artifact</p>
+</section>
+
+<main class="tracking-page">
+  <div class="tracking-centered-wrapper">
+    <form class="tracking-form" (ngSubmit)="trackOrder()">
+      <label for="tracking-order-id">Order ID</label>
+      <input id="tracking-order-id" type="text" name="orderId" [(ngModel)]="orderId" placeholder="Enter your Order ID"
+        autocomplete="off" required>
+
+      @if (errorMessage) {
+      <p class="tracking-error" role="alert">{{ errorMessage }}</p>
+      }
+
+      <button class="primary-btn" type="submit" [disabled]="loading">
+        @if (loading) {
+        <span>Locating Order...</span>
+        } @else {
+        <span>Track Order</span>
+        }
+      </button>
+    </form>
+
+    @if (order; as trackedOrder) {
+    <section class="tracking-result" aria-live="polite">
+      <div class="result-heading">
+        <div>
+          <span class="eyebrow">Order ID</span>
+          <h2>{{ trackedOrder.displayId || trackedOrder.orderNumber || ('#' + trackedOrder.id) }}</h2>
+        </div>
+        <span class="status-badge" [class.cancelled]="isCancelled" [class.rejected]="isReturnRejected">{{ trackedOrder.orderStatus }}</span>
+      </div>
+
+      @if (trackedOrder.orderDate) {
+      <p class="order-date">Placed {{ trackedOrder.orderDate | date:'medium' }}</p>
+      }
+
+      @if (isCancelled) {
+      <p class="cancelled-message">This order has been cancelled. Contact support if you need help.</p>
+      } @else if (currentStepIndex >= 0) {
+      <ol class="status-timeline" [class.has-return-steps]="currentSteps.length > 5" aria-label="Order progress">
+        @for (step of currentSteps; track step; let index = $index) {
+        <li [class.completed]="index <= currentStepIndex" [class.current]="index === currentStepIndex"
+          [class.return-step]="index >= 5 && step !== 'Return Rejected'" [class.rejected-step]="step === 'Return Rejected'">
+          <span class="step-marker" aria-hidden="true"></span>
+          <span>{{ step }}</span>
+        </li>
+        }
+      </ol>
+      } @else {
+      <p class="status-help">Current order status: <strong>{{ trackedOrder.orderStatus }}</strong></p>
+      }
+
+      @if (trackedOrder.returnInfo; as ret) {
+      <div class="return-tracking-info-box" [class.rejected-box]="isReturnRejected">
+        <div class="return-tracking-header">
+          <span class="return-icon">{{ isReturnRejected ? '✕' : '🔄' }}</span>
+          <div class="return-header-text">
+            <strong>{{ isReturnRejected ? 'Return Request Rejected' : 'Return &amp; Refund Progress' }}</strong>
+            <small>Return Request ID: #{{ ret.id || ret._id }}</small>
+          </div>
+          <span class="return-status-pill" [class.rejected]="isReturnRejected">{{ trackedOrder.orderStatus }}</span>
+        </div>
+        <div class="return-tracking-content">
+          @if (ret.reason) {
+          <div class="tracking-data-row">
+            <span class="tracking-label">Return Reason:</span>
+            <strong class="tracking-val">{{ ret.reason }}</strong>
+          </div>
+          }
+          @if (ret.refundAmount && !isReturnRejected) {
+          <div class="tracking-data-row">
+            <span class="tracking-label">Refund Amount:</span>
+            <strong class="tracking-val refund-val">₹{{ ret.refundAmount }}</strong>
+          </div>
+          }
+          @if (ret.pickupAddress && !isReturnRejected) {
+          <div class="tracking-data-row">
+            <span class="tracking-label">Pickup Hub / Location:</span>
+            <strong class="tracking-val">{{ ret.pickupLocationName ? (ret.pickupLocationName + ' · ' + ret.pickupAddress) : ret.pickupAddress }}</strong>
+          </div>
+          }
+          @if (ret.adminNote || ret.adminMessage) {
+          <div class="tracking-data-row">
+            <span class="tracking-label">{{ isReturnRejected ? 'Rejection Reason:' : 'Store Note:' }}</span>
+            <strong class="tracking-val note-val" [class.rejected-note]="isReturnRejected">{{ ret.adminNote || ret.adminMessage }}</strong>
+          </div>
+          }
+        </div>
+      </div>
+      }
+
+      @if (trackedOrder.courierName || trackedOrder.trackingNumber) {
+      <div class="shipping-info-box">
+        <span class="shipping-icon">🚚</span>
+        <div class="shipping-details">
+          @if (trackedOrder.courierName) {
+          <div>
+            <span class="meta-label">Courier:</span>
+            <strong>{{ trackedOrder.courierName }}</strong>
+          </div>
+          }
+          @if (trackedOrder.trackingNumber) {
+          <div>
+            <span class="meta-label">Tracking Number:</span>
+            <strong class="tracking-code-val">{{ trackedOrder.trackingNumber }}</strong>
+          </div>
+          }
+        </div>
+      </div>
+      }
+
+      @if (trackedOrder.items?.length) {
+      <div class="tracked-items">
+        <h3>Items</h3>
+        @for (item of trackedOrder.items; track $index) {
+        <div class="tracked-item">
+          <span>{{ item.product?.name || 'Product' }} × {{ item.quantity || 1 }}</span>
+          @if (item.product?.price; as price) {
+          <strong>₹{{ price * (item.quantity || 1) }}</strong>
+          }
+        </div>
+        }
+      </div>
+      }
+
+      <div class="order-meta">
+        @if (trackedOrder.total !== undefined) {
+        <span>Total <strong>₹{{ trackedOrder.total }}</strong></span>
+        }
+        @if (trackedOrder.paymentMethod) {
+        <span>Payment <strong>{{ trackedOrder.paymentMethod }}</strong></span>
+        }
+        @if (trackedOrder.paymentStatus) {
+        <span>Payment status <strong>{{ trackedOrder.paymentStatus }}</strong></span>
+        }
+      </div>
+    </section>
+    }
+
+
+  </div>
+</main>

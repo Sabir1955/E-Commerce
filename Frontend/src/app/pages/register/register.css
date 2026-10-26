@@ -1,0 +1,160 @@
+.auth-page {
+  min-height: calc(100vh - 76px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  background: var(--cream);
+}
+
+.auth-card {
+  width: min(420px, 100%);
+  padding: 35px;
+  background: var(--off-white);
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(48,39,42,.2);
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .auth-page {
+    padding: 24px 16px;
+  }
+
+  .auth-card {
+    padding: 24px 20px;
+  }
+}
+
+.auth-icon {
+  width: 82px;
+  height: 82px;
+  margin: auto;
+  border: 2.5px solid var(--gold);
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(185, 154, 69, 0.4);
+  background: #ffffff;
+}
+
+.auth-logo-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+  display: block;
+}
+
+.auth-card h1 {
+  color: var(--maroon);
+  font-family: 'Cinzel', serif;
+}
+
+.auth-card > p {
+  color: var(--purple);
+}
+
+form {
+  text-align: left;
+}
+
+label {
+  display: block;
+  margin: 15px 0 6px;
+  font-weight: 600;
+}
+
+input {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.password-input-wrapper input {
+  width: 100%;
+  padding-right: 46px;
+  box-sizing: border-box;
+}
+
+.password-input-wrapper .password-toggle-btn,
+button.password-toggle-btn {
+  position: absolute !important;
+  top: 50% !important;
+  right: 10px !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
+  width: 34px !important;
+  min-width: 34px !important;
+  max-width: 34px !important;
+  height: 34px !important;
+  margin: 0 !important;
+  padding: 6px !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 4px;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: var(--maroon) !important;
+  opacity: 0.75;
+  transition: opacity 0.2s, color 0.2s;
+  z-index: 3;
+  box-shadow: none !important;
+}
+
+.password-toggle-btn:hover,
+.password-toggle-btn:focus-visible {
+  opacity: 1;
+  color: var(--gold) !important;
+  outline: none;
+  transform: translateY(-50%) !important;
+}
+
+.password-toggle-btn svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+form button.primary-btn {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.error {
+  background: #f8d7da;
+  color: #842029;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 15px 0;
+}
+
+.success {
+  background: #d1e7dd;
+  color: #0f5132;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 15px 0;
+}
+
+.login-text {
+  margin-top: 20px;
+}
+
+.login-text a {
+  color: var(--maroon);
+  font-weight: bold;
+}

@@ -1,0 +1,405 @@
+<main class="returns-admin">
+  <header class="returns-header">
+    <div class="header-titles">
+      <p class="store-badge">ASTRO NIRVAN ADMIN</p>
+      <h1>Return &amp; Refund Management</h1>
+      <p class="header-subtitle">Review customer returns, inspect evidence photos, approve refunds, and manage inventory
+        restocking.</p>
+    </div>
+    <div class="header-stat">
+      <span class="stat-count">{{ filteredRequests.length }}</span>
+      <span class="stat-label">Requests</span>
+    </div>
+  </header>
+
+  @if (message) {
+  <p class="notice success" role="status">✓ {{ message }}</p>
+  }
+  @if (errorMessage) {
+  <p class="notice error" role="alert">⚠ {{ errorMessage }}</p>
+  }
+
+  <!-- Search and Filter Controls -->
+  <section class="controls-bar" aria-label="Filters and search">
+    <div class="search-wrap">
+      <input type="search" [(ngModel)]="searchTerm" (ngModelChange)="applyFilter()"
+        placeholder="Search by Request ID, Order ID, Customer, Product..." class="admin-search-input"
+        aria-label="Search return requests" />
+    </div>
+
+    <div class="filter-pills" role="tablist" aria-label="Status filters">
+      <button type="button" class="pill-btn" [class.active]="selectedFilter === 'All'" (click)="setFilter('All')">
+        All ({{ requests.length }})
+      </button>
+      <button type="button" class="pill-btn" [class.active]="selectedFilter === 'Requested'"
+        (click)="setFilter('Requested')">
+        Requested
+      </button>
+      <button type="button" class="pill-btn" [class.active]="selectedFilter === 'Accepted'"
+        (click)="setFilter('Accepted')">
+        Accepted
+      </button>
+      <button type="button" class="pill-btn" [class.active]="selectedFilter === 'Processing'"
+        (click)="setFilter('Processing')">
+        Processing
+      </button>
+      <button type="button" class="pill-btn" [class.active]="selectedFilter === 'Processed'"
+        (click)="setFilter('Processed')">
+        Processed
+      </button>
+      <button type="button" class="pill-btn" [class.active]="selectedFilter === 'Rejected'"
+        (click)="setFilter('Rejected')">
+        Rejected
+      </button>
+    </div>
+  </section>
+
+  <!-- Requests Section -->
+  <section class="requests-section">
+    @if (filteredRequests.length > 0) {
+    <div class="request-list">
+      @for (request of filteredRequests; track request.id) {
+      <article class="request-card">
+        <div class="request-heading">
+          <div class="request-info-meta">
+            <span class="req-id-tag">Return #{{ request.id }}</span>
+            <h3>Order #{{ request.orderId }} · {{ request.type === 'refund' ? 'Refund' : 'Replacement' }}</h3>
+            <p class="customer-line">
+              <strong>Customer:</strong> {{ request.customerName }} ({{ request.email }})
+              @if (request.mobile) { · {{ request.mobile }} }
+            </p>
+            @if (request.products && request.products.length > 0) {
+            <div class="products-summary-line">
+              <strong>Product:</strong>
+              @for (prod of request.products; track $index) {
+              <span class="product-item-chip">
+                @if (prod.image) {
+                <img [src]="resolveImg(prod.image)" alt="" class="chip-img" />
+                }
+                {{ prod.name }} × {{ prod.quantity }}
+              </span>
+              }
+            </div>
+            }
+            <p class="financial-line">
+              Request value: <strong>₹{{ request.amount }}</strong>
+              @if (request.refundAmount > 0) {
+              · Eligible Refund: <strong class="gold-text">₹{{ request.refundAmount }}</strong>
+              }
+              · {{ request.paymentMethod }} · Payment {{ request.paymentStatus }}
+            </p>
+          </div>
+
+          <div class="request-status-wrap">
+            <span class="status-pill" [attr.data-status]="request.status">{{ request.status }}</span>
+            @if (request.isRestocked) {
+            <span class="restocked-tag">✓ Restocked</span>
+            }
+          </div>
+        </div>
+
+        <div class="request-body-summary">
+          <p class="reason"><strong>Return Reason:</strong> {{ request.reason }}</p>
+          @if (request.comments) {
+          <p class="comments-preview"><strong>Comments:</strong> "{{ request.comments }}"</p>
+          }
+          <p class="request-date"><strong>Date Requested:</strong> {{ request.requestedAt | date:'medium' }}</p>
+
+          <!-- Evidence Photos Preview Strip -->
+          @if (request.evidenceImages && request.evidenceImages.length > 0) {
+          <div class="evidence-strip">
+            <span class="evidence-strip-label">Evidence Photos ({{ request.evidenceImages.length }}):</span>
+            <div class="evidence-strip-thumbnails">
+              @for (img of request.evidenceImages; track $index) {
+              <div class="strip-thumb" (click)="openEvidencePreview(img.url)">
+                <img [src]="resolveImg(img.url)" [alt]="'Evidence ' + ($index + 1)" />
+              </div>
+              }
+            </div>
+          </div>
+          }
+        </div>
+
+        <!-- Card Bottom Bar with View Details and Workflow -->
+        <div class="card-bottom-bar">
+          <button type="button" class="view-details-cta-btn" (click)="openDetailsModal(request)">
+            👁 View Full Details &amp; Workflow
+          </button>
+        </div>
+      </article>
+      }
+    </div>
+    } @else {
+    <div class="empty-state">
+      <p class="empty-text">No return requests match your criteria.</p>
+      @if (selectedFilter !== 'All' || searchTerm) {
+      <button type="button" class="clear-filters-btn" (click)="selectedFilter = 'All'; searchTerm = ''; applyFilter()">
+        Clear Filters
+      </button>
+      }
+    </div>
+    }
+  </section>
+
+  <!-- Detailed Management Modal -->
+  @if (selectedRequest) {
+  <div class="modal-backdrop" (click)="closeDetailsModal()" role="dialog" aria-modal="true"
+    aria-labelledby="modalDetailTitle">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <header class="modal-top">
+        <div class="modal-title-group">
+          <span class="modal-req-tag">Request #{{ selectedRequest.id }}</span>
+          <h2 id="modalDetailTitle">Return Request — Order #{{ selectedRequest.orderId }}</h2>
+        </div>
+        <button type="button" class="modal-close-icon" (click)="closeDetailsModal()"
+          aria-label="Close dialog">✕</button>
+      </header>
+
+      <div class="modal-scroll-body">
+        <!-- Customer & Order Information Grid -->
+        <div class="details-section">
+          <h3 class="section-title">Customer &amp; Order Information</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Customer Name:</span>
+              <span class="info-val">{{ selectedRequest.customerName }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Email Address:</span>
+              <span class="info-val">{{ selectedRequest.email }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Mobile Number:</span>
+              <span class="info-val">{{ selectedRequest.mobile || 'Not provided' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Order Total:</span>
+              <span class="info-val font-semibold">₹{{ selectedRequest.amount }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Payment Gateway:</span>
+              <span class="info-val">{{ selectedRequest.paymentMethod }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Payment Status:</span>
+              <span class="info-val">{{ selectedRequest.paymentStatus }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Current Status:</span>
+              <span class="status-pill" [attr.data-status]="selectedRequest.status">{{ selectedRequest.status }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Requested Date:</span>
+              <span class="info-val">{{ selectedRequest.requestedAt | date:'medium' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Details with Original Image -->
+        <div class="details-section">
+          <h3 class="section-title">Purchased Sacred Items</h3>
+          <div class="products-detail-list">
+            @for (prod of selectedRequest.products; track $index) {
+            <div class="prod-detail-card">
+              <div class="prod-thumb-box">
+                <img [src]="resolveImg(prod.image)" [alt]="prod.name" class="original-image-preview" />
+                <span class="thumb-badge">Original Item</span>
+              </div>
+              <div class="prod-meta-box">
+                <h4 class="prod-name-header">{{ prod.name }}</h4>
+                <div class="prod-metrics">
+                  <span>Purchased Quantity: <strong>{{ prod.quantity }}</strong></span>
+                  @if (prod.price) {
+                  <span>Unit Price: <strong>₹{{ prod.price }}</strong></span>
+                  <span>Item Subtotal: <strong>₹{{ prod.price * prod.quantity }}</strong></span>
+                  }
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+
+        <!-- Return Reason & Additional Comments -->
+        <div class="details-section">
+          <h3 class="section-title">Customer Claim</h3>
+          <div class="claim-box">
+            <p><strong>Reason:</strong> <span class="claim-reason">{{ selectedRequest.reason }}</span></p>
+            @if (selectedRequest.comments) {
+            <p><strong>Additional Comments:</strong> "{{ selectedRequest.comments }}"</p>
+            }
+          </div>
+        </div>
+
+        <!-- Customer-Uploaded Evidence Images Gallery -->
+        <div class="details-section">
+          <h3 class="section-title">
+            Customer Evidence Images
+            <span class="badge-count">({{ selectedRequest.evidenceImages?.length || 0 }})</span>
+          </h3>
+          @if (selectedRequest.evidenceImages && selectedRequest.evidenceImages.length > 0) {
+          <div class="evidence-grid-view">
+            @for (img of selectedRequest.evidenceImages; track $index) {
+            <div class="evidence-card" (click)="openEvidencePreview(img.url)">
+              <img [src]="resolveImg(img.url)" [alt]="'Evidence ' + ($index + 1)" class="evidence-full-thumb" />
+              <span class="zoom-overlay">🔍 Inspect</span>
+            </div>
+            }
+          </div>
+          } @else {
+          <p class="no-evidence-note">No evidence images uploaded with this request.</p>
+          }
+        </div>
+
+        <!-- Audit Trail & Status History -->
+        @if (selectedRequest.statusHistory && selectedRequest.statusHistory.length > 0) {
+        <div class="details-section">
+          <h3 class="section-title">Status Transition History &amp; Audit Trail</h3>
+          <div class="status-history-flow">
+            @for (hist of selectedRequest.statusHistory; track $index) {
+            <div class="history-step-entry">
+              <div class="hist-dot"></div>
+              <div class="hist-detail">
+                <div class="hist-header">
+                  <span class="hist-status">
+                    @if (hist.fromStatus) { {{ hist.fromStatus }} → }
+                    <strong>{{ hist.toStatus }}</strong>
+                  </span>
+                  <time class="hist-date">{{ hist.timestamp | date:'medium' }}</time>
+                </div>
+                @if (hist.message) {
+                <p class="hist-note">"{{ hist.message }}"</p>
+                }
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+        }
+
+        <!-- Admin Messages & Decisions Section -->
+        <div class="details-section action-section">
+          <h3 class="section-title">Administrative Actions &amp; Decisions</h3>
+
+          <!-- Message to Customer -->
+          <div class="admin-msg-subform">
+            <label class="input-block-label">
+              <span>Direct Message to Customer:</span>
+              <textarea [(ngModel)]="adminActionMessage" rows="2"
+                placeholder="Enter message or update visible to customer..." class="admin-textarea"></textarea>
+            </label>
+            <button type="button" class="send-msg-btn" [disabled]="actionLoading || !adminActionMessage.trim()"
+              (click)="sendAdminMessage(selectedRequest)">
+              Send Message
+            </button>
+          </div>
+
+          <!-- Decision Buttons (Accept / Reject) -->
+          @if (selectedRequest.status === 'Requested') {
+          <div class="decision-cards-grid">
+            <!-- Accept Card -->
+            <div class="decision-card accept-card">
+              <h4>Approve Return Request</h4>
+              <p class="card-desc">Accept the return and confirm maximum allowable refund amount (computed from verified
+                order records).</p>
+              <label class="input-block-label">
+                <span>Approved Refund Amount (Max: ₹{{ selectedRequest.amount }}):</span>
+                <input type="number" [(ngModel)]="customRefundAmount" [min]="0" [max]="selectedRequest.amount"
+                  class="admin-input" />
+              </label>
+              <button type="button" class="action-btn accept-btn" [disabled]="actionLoading"
+                (click)="confirmAccept(selectedRequest)">
+                ✓ Confirm &amp; Accept Return
+              </button>
+            </div>
+
+            <!-- Reject Card -->
+            <div class="decision-card reject-card">
+              <h4>Reject Return Request</h4>
+              <p class="card-desc">An explanation message is mandatory when rejecting a return request.</p>
+              <label class="input-block-label">
+                <span>Rejection Reason <span class="req-star"></span></span>
+                <textarea [(ngModel)]="rejectionInputMessage" rows="2"
+                  placeholder="Explain why this request is rejected..." class="admin-textarea"></textarea>
+              </label>
+              <button type="button" class="action-btn reject-btn"
+                [disabled]="actionLoading || !rejectionInputMessage.trim()" (click)="confirmReject(selectedRequest)">
+                ✕ Confirm Rejection
+              </button>
+            </div>
+          </div>
+          }
+
+          <!-- Refund Gateway Dispatch -->
+          @if (selectedRequest.status === 'Accepted' || selectedRequest.status === 'Processing') {
+          <div class="refund-dispatch-card">
+            <div class="dispatch-header">
+              <h4>Initiate Gateway Refund</h4>
+              <span class="dispatch-badge">Eligible Amount: ₹{{ selectedRequest.refundAmount || selectedRequest.amount
+                }}</span>
+            </div>
+            <p class="dispatch-desc">
+              Dispatches refund via original payment gateway (<strong>{{ selectedRequest.paymentMethod }}</strong>).
+              Safe idempotency keys prevent duplicate refund disbursements.
+            </p>
+
+            @if (selectedRequest.refundError) {
+            <p class="dispatch-error">⚠ Previous Attempt: {{ selectedRequest.refundError }}</p>
+            }
+
+            @if (selectedRequest.paymentMethod.toUpperCase() === 'COD') {
+            <div class="manual-refund-inputs">
+              <label class="input-block-label">
+                <span>Manual Refund Method:</span>
+                <select [(ngModel)]="manualRefundMethod" class="admin-input">
+                  @for (m of refundMethods; track m) {
+                  <option [value]="m">{{ m }}</option>
+                  }
+                </select>
+              </label>
+              <label class="input-block-label">
+                <span>Transaction Reference / UTR:</span>
+                <input [(ngModel)]="manualRefundReference" placeholder="e.g. UTR12345678" class="admin-input" />
+              </label>
+            </div>
+            }
+
+            <button type="button" class="action-btn refund-btn" [disabled]="actionLoading"
+              (click)="confirmProcessRefund(selectedRequest)">
+              ⚡ Process Refund (₹{{ customRefundAmount || selectedRequest.refundAmount || selectedRequest.amount }})
+            </button>
+          </div>
+          }
+
+          <!-- Restock Inventory Button -->
+          <div class="restock-box">
+            <div class="restock-info">
+              <h4>Inventory Restocking</h4>
+              <p>Restock eligible returned product units back into PostgreSQL inventory after physical inspection.</p>
+            </div>
+            @if (selectedRequest.isRestocked) {
+            <div class="restocked-done-badge">✓ Units Restocked on {{ selectedRequest.restockedAt | date:'medium' }}
+            </div>
+            } @else {
+            <button type="button" class="action-btn restock-btn" [disabled]="actionLoading"
+              (click)="confirmRestock(selectedRequest)">
+              📦 Restock Inspected Items into Inventory
+            </button>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Lightbox Modal for Evidence Photos -->
+  @if (previewImageUrl) {
+  <div class="lightbox-overlay" (click)="closeEvidencePreview()">
+    <div class="lightbox-card" (click)="$event.stopPropagation()">
+      <button type="button" class="close-lightbox" (click)="closeEvidencePreview()">✕</button>
+      <img [src]="previewImageUrl" alt="Evidence photo" class="lightbox-photo" />
+    </div>
+  </div>
+  }
+</main>

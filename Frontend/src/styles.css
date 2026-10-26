@@ -1,0 +1,420 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
+
+/* ==========================================================================
+   PHASE 11: CENTRALIZED ASTROLOGY DESIGN SYSTEM & BRAND TOKENS
+   ========================================================================== */
+:root {
+  /* Core Brand Colors (Exact Specifications per Master SRS) */
+  --color-cream: #D8B88E;       /* Warm Cream / Beige: Main background and warm sections */
+  --color-maroon: #8F1830;      /* Deep Maroon: Primary brand color, primary CTA, active states */
+  --color-brick-red: #A63A42;   /* Brick Red: Secondary red accents and secondary actions */
+  --color-navy: #20233B;        /* Dark Navy / Blue: Admin sidebar, footer, dark navigation */
+  --color-gold: #B99A45;        /* Muted Gold: Zodiac symbols, decorative accents, selected states */
+  --color-purple: #5B4167;      /* Dusty Purple: Hindi/Sanskrit lettering & secondary astrology text */
+  --color-off-white: #F0E7D5;   /* Off White: Light surfaces and text on dark backgrounds */
+  --color-dark: #30272A;        /* Dark Brown / Black: Main text, headings, outlines */
+
+  /* Direct Compatibility Aliases */
+  --cream: var(--color-cream);
+  --maroon: var(--color-maroon);
+  --brick-red: var(--color-brick-red);
+  --navy: var(--color-navy);
+  --gold: var(--color-gold);
+  --purple: var(--color-purple);
+  --off-white: var(--color-off-white);
+  --dark: var(--color-dark);
+
+  /* Semantic Tokens */
+  --bg-primary: var(--color-cream);
+  --bg-surface: var(--color-off-white);
+  --bg-dark: var(--color-navy);
+  --text-main: var(--color-dark);
+  --text-muted: var(--color-purple);
+  --text-light: var(--color-off-white);
+  --border-gold: var(--color-gold);
+  --border-subtle: rgba(185, 154, 69, 0.25);
+  --border-dark: rgba(48, 39, 42, 0.15);
+
+  /* Typography Stacks */
+  --font-serif: 'Cinzel', serif;
+  --font-sans: 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-ornate: 'Cinzel Decorative', 'Cinzel', serif;
+
+  /* Elevation Shadows */
+  --shadow-sm: 0 2px 8px rgba(48, 39, 42, 0.08);
+  --shadow-md: 0 5px 20px rgba(48, 39, 42, 0.12);
+  --shadow-lg: 0 12px 32px rgba(48, 39, 42, 0.18);
+  --shadow-gold: 0 4px 18px rgba(185, 154, 69, 0.35);
+
+  /* Timing & Motion */
+  --transition-fast: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Border Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-full: 9999px;
+}
+
+/* ==========================================================================
+   GLOBAL RESET & DEFAULTS
+   ========================================================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-cream);
+  color: var(--color-dark);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+h1 {
+  font-size: clamp(24px, calc(1vw + 20px), 32px);
+}
+
+h2 {
+  font-size: clamp(20px, calc(0.8vw + 17.6px), 24px);
+}
+
+h3 {
+  font-size: clamp(16px, calc(0.5vw + 15px), 18.72px);
+}
+
+p {
+  font-size: clamp(14px, calc(0.8vw + 11.4px), 16px);
+}
+
+img,
+video,
+canvas {
+  max-width: 100%;
+}
+
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+/* ==========================================================================
+   CONTAINER & LAYOUT
+   ========================================================================== */
+.container {
+  width: 90%;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* ==========================================================================
+   BUTTON DESIGN SYSTEM
+   ========================================================================== */
+.primary-btn,
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--color-maroon);
+  color: var(--color-off-white);
+  border: 1px solid transparent;
+  padding: 12px 26px;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: background var(--transition-normal), transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.primary-btn:hover,
+.btn-primary:hover {
+  background: var(--color-brick-red);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(143, 24, 48, 0.3);
+}
+
+.primary-btn:active,
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.secondary-btn,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--color-gold);
+  color: var(--color-dark);
+  border: 1px solid transparent;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 600;
+  transition: filter var(--transition-fast), transform var(--transition-fast);
+}
+
+.secondary-btn:hover,
+.btn-secondary:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-gold);
+}
+
+.outline-btn,
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--color-dark);
+  border: 2px solid var(--color-gold);
+  padding: 10px 22px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  transition: all var(--transition-normal);
+}
+
+.outline-btn:hover,
+.btn-outline:hover {
+  background: var(--color-gold);
+  color: var(--color-dark);
+}
+
+.navy-btn,
+.btn-navy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--color-navy);
+  color: var(--color-off-white);
+  border: 1px solid var(--color-gold);
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  transition: all var(--transition-normal);
+}
+
+.navy-btn:hover,
+.btn-navy:hover {
+  background: #2a2e4d;
+  box-shadow: 0 4px 16px rgba(32, 35, 59, 0.25);
+}
+
+/* ==========================================================================
+   HEADINGS & TYPOGRAPHY
+   ========================================================================== */
+.page-title {
+  text-align: center;
+  padding: 48px 20px;
+  background: var(--color-maroon);
+  color: var(--color-off-white);
+  border-bottom: 3px solid var(--color-gold);
+}
+
+.page-title h1 {
+  font-family: var(--font-serif);
+  font-size: clamp(25px, calc(2.5vw + 18px), 38px);
+  margin-bottom: 8px;
+  letter-spacing: 0.03em;
+}
+
+.page-title .sacred-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(185, 154, 69, 0.18);
+  border: 1px solid var(--color-gold);
+  color: var(--color-gold);
+  padding: 5px 16px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+}
+
+.page-title .sanskrit-subtext {
+  color: var(--color-cream);
+  font-size: 13px;
+  margin-top: 10px;
+  letter-spacing: 0.04em;
+}
+
+.section-title {
+  text-align: center;
+  color: var(--color-maroon);
+  font-family: var(--font-serif);
+  font-size: clamp(23px, 2.5vw, 32px);
+  margin-bottom: 35px;
+  letter-spacing: 0.02em;
+}
+
+.zodiac-symbol {
+  color: var(--color-gold);
+  font-size: 1.25em;
+  vertical-align: middle;
+}
+
+.astrology-tagline {
+  color: var(--color-purple);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sanskrit-subtext {
+  color: var(--color-purple);
+  font-family: var(--font-sans);
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   CARDS & SURFACES
+   ========================================================================== */
+.card {
+  background: var(--color-off-white);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-md);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.card-gold {
+  border: 2px solid var(--color-gold);
+}
+
+.card-glass {
+  background: rgba(240, 231, 213, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(185, 154, 69, 0.3);
+}
+
+/* ==========================================================================
+   BADGES & ORNAMENTS
+   ========================================================================== */
+.badge-gold {
+  display: inline-block;
+  background: rgba(185, 154, 69, 0.18);
+  color: var(--color-dark);
+  border: 1px solid var(--color-gold);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-maroon {
+  display: inline-block;
+  background: var(--color-maroon);
+  color: var(--color-off-white);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-purple {
+  display: inline-block;
+  background: rgba(91, 65, 103, 0.15);
+  color: var(--color-purple);
+  border: 1px solid rgba(91, 65, 103, 0.3);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.gold-divider {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+  margin: 32px 0;
+  border: none;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN BREAKPOINTS
+   ========================================================================== */
+@media (max-width: 768px) {
+  .container {
+    width: 94%;
+  }
+
+  .page-title h1 {
+    font-size: clamp(24px, calc(0.9vw + 25px), 28px);
+  }
+
+  .section-title {
+    font-size: clamp(22px, calc(0.5vw + 22px), 26px);
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    padding: 32px 14px;
+  }
+
+  .page-title h1 {
+    font-size: 24px;
+    overflow-wrap: anywhere;
+  }
+
+  .section-title {
+    font-size: 23px;
+    margin-bottom: 24px;
+  }
+
+  .primary-btn,
+  .btn-primary,
+  .secondary-btn,
+  .btn-secondary,
+  .outline-btn,
+  .btn-outline,
+  .navy-btn,
+  .btn-navy {
+    font-size: clamp(13px, 4vw, 15px);
+  }
+}

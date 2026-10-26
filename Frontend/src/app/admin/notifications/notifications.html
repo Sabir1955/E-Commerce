@@ -1,0 +1,101 @@
+<main class="notifications-admin">
+  <header>
+    <div>
+      <p>ASTROLOGY STORE · ADMIN</p>
+      <h1>Notification Center</h1>
+
+    </div>
+
+    <div class="header-actions">
+      @if (unreadCount > 0) {
+      <button type="button" class="mark-all-read-btn" [disabled]="markingAll" (click)="markAllAsRead()">
+        {{ markingAll ? 'Marking...' : 'Mark All as Read' }}
+      </button>
+      }
+    </div>
+  </header>
+
+  @if (successMessage) {
+  <p class="history-message success" role="status">{{ successMessage }}</p>
+  }
+
+  @if (errorMessage) {
+  <p class="error-message" role="alert">{{ errorMessage }}</p>
+  }
+
+  @if (loading) {
+  <div class="loading-state">
+    <p>Loading notifications from database...</p>
+  </div>
+  } @else if (logs.length > 0) {
+  <section class="notification-list" aria-label="Real-time notification events">
+    @for (log of logs; track log._id) {
+    <article class="notification-card clickable" [class.unread]="!log.read" (click)="onNotificationClick(log)"
+      role="button" tabindex="0" (keydown.enter)="onNotificationClick(log)">
+      <div class="card-left">
+        <div class="channel-row">
+          <span class="channel-badge" [attr.data-channel]="log.channel">
+            <span class="channel-icon">{{ getChannelIcon(log.channel) }}</span>
+            {{ getChannelLabel(log.channel) }}
+          </span>
+
+          <span class="status-badge" [attr.data-status]="log.status">
+            {{ log.status | uppercase }}
+          </span>
+
+          @if (!log.read) {
+          <span class="unread-dot-badge">New</span>
+          }
+        </div>
+
+        <h2 class="notification-subject">
+          {{ log.subject || 'System Notification' }}
+        </h2>
+
+        <p class="notification-message">
+          {{ log.message }}
+        </p>
+
+        <div class="notification-entities">
+          <span class="entity-item">
+            <strong>To:</strong> {{ log.recipient }}
+          </span>
+
+          @if (log.order) {
+          <span class="entity-chip order-chip">
+            📦 Order #{{ log.order.orderNumber || (log.order._id | slice:-6 | uppercase) }}
+            ({{ log.order.status }})
+          </span>
+          }
+
+          @if (log.user) {
+          <span class="entity-chip user-chip">
+            👤 {{ log.user.name || log.user.email }}
+          </span>
+          }
+
+          @if (log.returnRequest) {
+          <span class="entity-chip return-chip">
+            🔄 Return Request ({{ log.returnRequest.status }})
+          </span>
+          }
+        </div>
+      </div>
+
+      <div class="card-right">
+        <div class="card-actions-top">
+          <time class="notification-time">{{ log.createdAt | date:'medium' }}</time>
+          <button type="button" class="delete-notif-btn" (click)="deleteNotification(log._id, $event)"
+            title="Delete notification" aria-label="Delete notification">
+            ✕
+          </button>
+        </div>
+        <span class="click-hint">{{ getDestinationLabel(log) }}</span>
+      </div>
+    </article>
+    }
+  </section>
+  } @else {
+  <p class="empty-state">No notifications recorded in the database.</p>
+  }
+</main>

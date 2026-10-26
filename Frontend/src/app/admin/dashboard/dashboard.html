@@ -1,0 +1,517 @@
+<div class="admin-content">
+
+  <div class="admin-header">
+    <div class="admin-header-title">
+      <p>ASTROLOGY STORE · ADMIN CONSOLE</p>
+      <h1>Admin Dashboard</h1>
+      <div class="admin-logged-in-pill">
+        <span class="live-dot" aria-hidden="true"></span>
+        <span class="pill-label">Admin Logged In:</span>
+        <strong class="pill-name">{{ currentAdmin?.name || 'Astro Admin' }}</strong>
+        <span class="pill-email">({{ currentAdmin?.email || 'admin@jyotish.com' }})</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button
+        type="button"
+        class="live-refresh-btn"
+        (click)="manualRefresh()"
+        [disabled]="isRefreshing"
+        title="Refresh dashboard metrics from database">
+        <span class="refresh-icon" [class.spinning]="isRefreshing">🔄</span>
+        <span>{{ isRefreshing ? 'Refreshing...' : 'Live Refresh' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="stats">
+
+    <!-- 1. Total Products -> Product Management -->
+    <a
+      class="stat-card clickable-stat"
+      routerLink="/admin/products"
+      title="Navigate to Product Management">
+      <div class="stat-card-top">
+        <span>✦</span>
+        <span class="card-arrow" aria-hidden="true">→</span>
+      </div>
+      <h3>Total Products</h3>
+      <strong>{{ products }}</strong>
+      <span class="card-action-label">Manage Products</span>
+    </a>
+
+    <!-- 2. Customers -> Customers -->
+    <a
+      class="stat-card clickable-stat"
+      routerLink="/admin/customers"
+      title="Navigate to Customers">
+      <div class="stat-card-top">
+        <span>👥</span>
+        <span class="card-arrow" aria-hidden="true">→</span>
+      </div>
+      <h3>Customers</h3>
+      <strong>{{ customers }}</strong>
+      <span class="card-action-label">View Customers</span>
+    </a>
+
+    <!-- 3. Orders -> Orders -->
+    <a
+      class="stat-card clickable-stat"
+      routerLink="/admin/orders"
+      title="Navigate to Orders">
+      <div class="stat-card-top">
+        <span>📦</span>
+        <span class="card-arrow" aria-hidden="true">→</span>
+      </div>
+      <h3>Orders</h3>
+      <strong>{{ orders }}</strong>
+      <span class="card-action-label">Manage Orders</span>
+    </a>
+
+    <!-- 4. Categories -> Category Management -->
+    <a
+      class="stat-card clickable-stat"
+      routerLink="/admin/categories"
+      title="Navigate to Category Management">
+      <div class="stat-card-top">
+        <span>☯</span>
+        <span class="card-arrow" aria-hidden="true">→</span>
+      </div>
+      <h3>Categories</h3>
+      <strong>{{ categories }}</strong>
+      <span class="card-action-label">Manage Categories</span>
+    </a>
+
+    <!-- 5. Total Sales -> Sales / Orders overview -->
+    <a
+      class="stat-card clickable-stat"
+      routerLink="/admin/orders"
+      title="Navigate to Sales/Orders Overview">
+      <div class="stat-card-top">
+        <span>₹</span>
+        <span class="card-arrow" aria-hidden="true">→</span>
+      </div>
+      <h3>Total Sales</h3>
+      <strong>₹{{ sales }}</strong>
+      <span class="card-action-label">Sales Overview</span>
+    </a>
+
+    <!-- 6. Pending Orders -> Orders filtered by Pending -->
+    <a
+      class="stat-card clickable-stat pending-card"
+      [routerLink]="['/admin/orders']"
+      [queryParams]="{ status: 'Pending' }"
+      title="Navigate to Orders filtered by Pending">
+      <div class="stat-card-top">
+        <span>⏳</span>
+        <span class="card-arrow" aria-hidden="true">→</span>
+      </div>
+      <h3>Pending Orders</h3>
+      <strong>{{ pendingOrders }}</strong>
+      <span class="card-action-label">Filter by Pending</span>
+    </a>
+
+    <!-- 7. Completed Orders -> Orders filtered by Completed -->
+    <a
+      class="stat-card clickable-stat completed-card"
+      [routerLink]="['/admin/orders']"
+      [queryParams]="{ status: 'Completed' }"
+      title="Navigate to Orders filtered by Completed">
+      <div class="stat-card-top">
+        <span>✓</span>
+        <span class="card-arrow" aria-hidden="true">→</span>
+      </div>
+      <h3>Completed Orders</h3>
+      <strong>{{ completedOrders }}</strong>
+      <span class="card-action-label">Filter by Completed</span>
+    </a>
+
+    <!-- 8. Out of Stock -> Inventory -->
+    <a
+      class="stat-card clickable-stat stock-card"
+      routerLink="/admin/inventory"
+      title="Navigate to Inventory">
+      <div class="stat-card-top">
+        <span>!</span>
+        <span class="card-arrow" aria-hidden="true">→</span>
+      </div>
+      <h3>Out of Stock</h3>
+      <strong>{{ outOfStock }}</strong>
+      <span class="card-action-label">Manage Inventory</span>
+    </a>
+
+  </div>
+
+  <!-- Real-time Order Workflow Pipeline Banner & Reports Link -->
+  <div class="workflow-summary-banner">
+    <div class="workflow-banner-title">
+      <span class="banner-icon">✦</span>
+      <div>
+        <h3>Live Order Fulfillment Workflow</h3>
+        <p>Real-time database status from customer checkout to final delivery</p>
+      </div>
+    </div>
+    <div class="workflow-pills-row">
+      <a [routerLink]="['/admin/orders']" [queryParams]="{ status: 'Awaiting Confirmation' }" class="wf-pill wf-awaiting" title="Filter Awaiting Confirmation">
+        <span class="wf-dot"></span>
+        <span class="wf-label">Awaiting Confirmation</span>
+        <strong>{{ awaitingConfirmationOrders }}</strong>
+      </a>
+      <a [routerLink]="['/admin/orders']" [queryParams]="{ status: 'Confirmed & Processing' }" class="wf-pill wf-confirmed" title="Filter Confirmed & Processing">
+        <span class="wf-dot"></span>
+        <span class="wf-label">Confirmed &amp; Processing</span>
+        <strong>{{ confirmedProcessingOrders }}</strong>
+      </a>
+      <a [routerLink]="['/admin/orders']" [queryParams]="{ status: 'Shipped' }" class="wf-pill wf-dispatched" title="Filter Dispatched">
+        <span class="wf-dot"></span>
+        <span class="wf-label">Dispatched</span>
+        <strong>{{ shippedOrders }}</strong>
+      </a>
+      <a [routerLink]="['/admin/orders']" [queryParams]="{ status: 'Completed' }" class="wf-pill wf-delivered" title="Filter Delivered">
+        <span class="wf-dot"></span>
+        <span class="wf-label">Delivered</span>
+        <strong>{{ completedOrders }}</strong>
+      </a>
+      <a [routerLink]="['/admin/orders']" [queryParams]="{ status: 'Cancelled' }" class="wf-pill wf-cancelled" title="Filter Cancelled">
+        <span class="wf-dot"></span>
+        <span class="wf-label">Cancelled</span>
+        <strong>{{ cancelledOrders }}</strong>
+      </a>
+    </div>
+    <div class="analytics-cta-wrap">
+      <a routerLink="/admin/reports/date-wise" class="analytics-cta-btn">
+        📊 Open 3D Animated Sales Analytics &amp; Date-wise Reports →
+      </a>
+    </div>
+  </div>
+
+  <section class="order-management" id="order-management">
+    <div class="order-management-heading">
+      <div>
+        <p>FULFILLMENT</p>
+        <h2>Recent Order Status</h2>
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="order-status-tabs" role="tablist" aria-label="Filter orders by status">
+      <button
+        type="button"
+        class="status-tab-btn"
+        [class.active]="statusFilter === 'ALL'"
+        (click)="setStatusFilter('ALL')">
+        All Orders ({{ orderList.length }})
+      </button>
+      <button
+        type="button"
+        class="status-tab-btn"
+        [class.active]="statusFilter.toLowerCase() === 'awaiting confirmation' || statusFilter.toLowerCase() === 'awaiting_confirmation'"
+        (click)="setStatusFilter('Awaiting Confirmation')">
+        ⏳ Awaiting Confirmation ({{ awaitingConfirmationOrders }})
+      </button>
+      <button
+        type="button"
+        class="status-tab-btn"
+        [class.active]="statusFilter.toLowerCase() === 'confirmed & processing' || statusFilter.toLowerCase() === 'confirmed'"
+        (click)="setStatusFilter('Confirmed & Processing')">
+        ⚙️ Confirmed &amp; Processing ({{ confirmedProcessingOrders }})
+      </button>
+      <button
+        type="button"
+        class="status-tab-btn"
+        [class.active]="statusFilter.toLowerCase() === 'shipped'"
+        (click)="setStatusFilter('Shipped')">
+        🚚 Dispatched ({{ shippedOrders || countShipped }})
+      </button>
+      <button
+        type="button"
+        class="status-tab-btn"
+        [class.active]="statusFilter.toLowerCase() === 'completed' || statusFilter.toLowerCase() === 'delivered'"
+        (click)="setStatusFilter('Completed')">
+        ✅ Delivered ({{ completedOrders || countDelivered }})
+      </button>
+      <button
+        type="button"
+        class="status-tab-btn"
+        [class.active]="statusFilter.toLowerCase() === 'cancelled'"
+        (click)="setStatusFilter('Cancelled')">
+        ❌ Cancelled ({{ cancelledOrders || countCancelled }})
+      </button>
+    </div>
+
+    @if (orderList.length > 0) {
+      <label class="order-search">
+        <span>Search orders</span>
+        <input
+          type="search"
+          name="orderSearch"
+          [(ngModel)]="orderSearch"
+          placeholder="Order ID, customer, email, phone, or status">
+      </label>
+
+      @if (filteredOrders.length > 0) {
+      <div class="order-list">
+        @for (order of filteredOrders; track order.id || $index) {
+          <article class="order-row" [class.awaiting-confirmation-row]="order.orderStatus === 'placed' || order.orderStatus === 'Order Placed'">
+            <div class="order-info">
+              <div class="order-title-line">
+                <strong>Order #{{ order.id }}</strong>
+                @if (order.orderStatus === 'placed' || order.orderStatus === 'Order Placed') {
+                  <span class="awaiting-pill">✦ Awaiting Confirmation</span>
+                }
+              </div>
+              <span>{{ order.customerName }}{{ order.email ? ' · ' + order.email : (order.mobile ? ' · ' + order.mobile : '') }}</span>
+              <small>{{ order.orderDate | date:'mediumDate' }} · ₹{{ order.total | number:'1.2-2' }}</small>
+              @if (order.paymentMethod || order.paymentStatus) {
+                <small class="dashboard-payment-line">
+                  Payment:
+                  <strong class="payment-method-badge" [class.cod-badge]="(order.paymentMethod || '').toUpperCase() === 'COD'">
+                    {{ order.paymentMethod || 'Online' }}
+                  </strong>
+                  ·
+                  <span class="payment-status-tag" [class.pending-tag]="(order.paymentStatus || '').toLowerCase() === 'pending'">
+                    {{ order.paymentStatus || 'Pending' }}
+                  </span>
+                </small>
+              }
+              <button
+                class="order-details-toggle"
+                type="button"
+                [attr.aria-expanded]="isOrderExpanded(order.id)"
+                (click)="toggleOrderDetails(order.id)">
+                {{ isOrderExpanded(order.id) ? 'Hide details' : 'View customer & product details' }}
+              </button>
+            </div>
+
+            <div class="order-actions-col">
+              @if (order.orderStatus === 'placed' || order.orderStatus === 'Order Placed') {
+                <div class="quick-confirmation-box">
+                  <button
+                    type="button"
+                    class="btn-confirm-action"
+                    [disabled]="isConfirming[order.id]"
+                    (click)="confirmOrder(order)"
+                    title="Confirm this customer order">
+                    ✓ Confirm
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-reject-action"
+                    [disabled]="isCancelling[order.id]"
+                    (click)="cancelOrder(order)"
+                    title="Reject/Cancel this order">
+                    ✕ Reject
+                  </button>
+                </div>
+              }
+
+              <label class="status-select-label">
+                <span>Status:</span>
+                <select
+                  [ngModel]="order.orderStatus"
+                  (ngModelChange)="updateOrderStatus(order.id, $event)"
+                  [name]="'status-' + order.id">
+                  @if (!order.orderStatus) {
+                    <option value="" disabled selected>No Status</option>
+                  }
+                  @for (status of orderStatuses; track status.value || status) {
+                    <option [value]="status.value || status">{{ status.label || status }}</option>
+                  }
+                </select>
+              </label>
+            </div>
+              @if (isOrderExpanded(order.id)) {
+                <div class="order-details">
+                  <!-- Order Summary & Shipping Meta Pills -->
+                  <div class="order-summary-meta">
+                    <div class="summary-pill">
+                      <span class="pill-label">Order ID:</span>
+                      <strong class="pill-val order-num-val">#{{ order.orderNumber || order.id }}</strong>
+                    </div>
+                    <div class="summary-pill">
+                      <span class="pill-label">Payment:</span>
+                      <span class="payment-method-badge" [class.cod-badge]="(order.paymentMethod || '').toUpperCase() === 'COD'">
+                        {{ order.paymentMethod || 'Online' }}
+                      </span>
+                    </div>
+                    <div class="summary-pill">
+                      <span class="pill-label">Payment Status:</span>
+                      <span class="payment-status-tag" [class.pending-tag]="(order.paymentStatus || '').toLowerCase() === 'pending'">
+                        {{ order.paymentStatus || 'Pending' }}
+                      </span>
+                    </div>
+                    <div class="summary-pill">
+                      <span class="pill-label">Status:</span>
+                      <span class="order-status-pill">{{ getStatusLabel(order.orderStatus) }}</span>
+                    </div>
+                    @if (order.courierName) {
+                      <div class="summary-pill">
+                        <span class="pill-label">Courier:</span>
+                        <strong class="pill-val">{{ order.courierName }}</strong>
+                      </div>
+                    }
+                    @if (order.trackingId) {
+                      <div class="summary-pill">
+                        <span class="pill-label">Tracking ID:</span>
+                        <strong class="pill-val tracking-id-code">{{ order.trackingId }}</strong>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Shipping Entry / Edit Form for Shipped Orders (Matches Order Management) -->
+                  @if (shippingFormOrderId === order.id || ((order.orderStatus === 'shipped' || order.orderStatus === 'Shipped') && (!order.courierName || !order.trackingId))) {
+                    <div class="shipping-entry-form">
+                      <div class="shipping-form-title">
+                        <span>🚚 Courier &amp; Tracking Details</span>
+                      </div>
+                      <div class="shipping-inputs-row">
+                        <div class="ship-input-group">
+                          <label [for]="'courier-' + order.id">
+                            <span class="field-label"><span class="required-star">*</span> Courier / Carrier Name</span>
+                          </label>
+                          <input
+                            [id]="'courier-' + order.id"
+                            type="text"
+                            [(ngModel)]="shippingCourierName[order.id]"
+                            placeholder="e.g. Blue Dart, Delhivery, DTDC, India Post"
+                            class="courier-input">
+                        </div>
+                        <div class="ship-input-group">
+                          <label [for]="'tracking-' + order.id">
+                            <span class="field-label"><span class="required-star">*</span> Tracking ID / AWB</span>
+                          </label>
+                          <input
+                            [id]="'tracking-' + order.id"
+                            type="text"
+                            [(ngModel)]="shippingTrackingId[order.id]"
+                            placeholder="e.g. BLD123456789"
+                            class="tracking-input">
+                        </div>
+                      </div>
+                      <div class="shipping-form-actions">
+                        <button
+                          type="button"
+                          class="primary-btn save-shipment-btn"
+                          [disabled]="isSavingShipment[order.id]"
+                          (click)="saveShipmentDetails(order)">
+                          {{ isSavingShipment[order.id] ? 'Saving...' : 'Save Shipping Info' }}
+                        </button>
+                        @if (shippingFormOrderId === order.id && order.courierName && order.trackingId) {
+                          <button
+                            type="button"
+                            class="cancel-ship-btn"
+                            (click)="cancelShippingForm(order)">
+                            Cancel
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  } @else if ((order.orderStatus === 'shipped' || order.orderStatus === 'Shipped') && order.courierName && order.trackingId) {
+                    <div class="shipping-info-display">
+                      <span class="ship-icon">🚚</span>
+                      <div class="ship-meta-text">
+                        <span><strong>Shipping Carrier:</strong> {{ order.courierName }}</span>
+                        <span><strong>Tracking ID:</strong> <code class="tracking-code-val">{{ order.trackingId }}</code></span>
+                      </div>
+                      <button type="button" class="edit-ship-btn" (click)="openShippingForm(order)">Edit Shipping</button>
+                    </div>
+                  }
+
+                  <!-- 1. Customer Details Card (High Visibility & Contrast) -->
+                  <div class="details-section-card customer-section">
+                    <div class="section-card-title">
+                      <span class="section-icon">👤</span>
+                      <h4>Customer Details</h4>
+                    </div>
+                    <div class="customer-info-grid">
+                      <div class="info-row">
+                        <span class="info-label">Customer Name:</span>
+                        <strong class="info-val customer-name-val">{{ order.customerName }}</strong>
+                      </div>
+                      <div class="info-row">
+                        <span class="info-label">Email:</span>
+                        <span class="info-val">{{ order.email || 'N/A' }}</span>
+                      </div>
+                      <div class="info-row">
+                        <span class="info-label">Phone:</span>
+                        <span class="info-val">{{ order.mobile || 'N/A' }}</span>
+                      </div>
+                      @if (order.address || order.city || order.state || order.pin) {
+                        <div class="info-row full-width">
+                          <span class="info-label">Full Address:</span>
+                          <span class="info-val address-val">
+                            {{ order.address ? order.address + ', ' : '' }}{{ order.city ? order.city + ', ' : '' }}{{ order.state || '' }} {{ order.pin || '' }}
+                          </span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+
+                  @if (order.orderStatus === 'delivered' || order.orderStatus === 'Delivered') {
+                    <label class="delivered-date-field">
+                      <span>Delivered date (needed for return eligibility)</span>
+                      <input
+                        type="date"
+                        [ngModel]="deliveredDateInput(order.deliveredAt)"
+                        (ngModelChange)="updateDeliveredDate(order.id, $event)"
+                        [name]="'delivered-date-' + order.id">
+                    </label>
+                  }
+
+                  <!-- 2. Purchased Products Card (High Visibility & Crisp Contrast) -->
+                  <div class="details-section-card product-order-section">
+                    <div class="section-card-title">
+                      <span class="section-icon">📦</span>
+                      <h4>Purchased Products</h4>
+                    </div>
+                    <div class="products-table-container">
+                      <table class="products-table">
+                        <thead>
+                          <tr>
+                            <th>Product Name</th>
+                            <th style="width: 70px; text-align: center;">Qty</th>
+                            <th style="width: 100px; text-align: right;">Price</th>
+                            <th style="width: 110px; text-align: right;">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (item of order.items ?? []; track $index) {
+                            <tr>
+                              <td>
+                                <strong class="product-item-name">{{ item.product?.name || 'Product' }}</strong>
+                              </td>
+                              <td style="text-align: center; font-weight: 700;">
+                                {{ item.quantity || 1 }}
+                              </td>
+                              <td style="text-align: right;">
+                                ₹{{ item.product?.price ?? (order.total / (item.quantity || 1)) }}
+                              </td>
+                              <td style="text-align: right; font-weight: 700; color: #0f172a;">
+                                ₹{{ (item.product?.price ? item.product.price * (item.quantity || 1) : order.total) }}
+                              </td>
+                            </tr>
+                          }
+                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <td colspan="3" class="grand-total-label">Order Total:</td>
+                            <td class="grand-total-val">₹{{ order.total }}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              }
+          </article>
+        }
+      </div>
+      } @else {
+        <p class="empty-orders">No orders match that search.</p>
+      }
+    } @else {
+      <p class="empty-orders">No orders to manage yet.</p>
+    }
+  </section>
+
+</div>

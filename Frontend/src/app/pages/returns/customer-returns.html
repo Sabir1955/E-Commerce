@@ -1,0 +1,354 @@
+<main class="customer-returns-page">
+  <header class="returns-page-header">
+    <div class="header-titles">
+      <span class="sacred-tag">ASTRO NIRVAN SACRED STORE</span>
+      <h1>Return &amp; Refund Status</h1>
+      <p class="subtitle">Track your return requests, product evidence review, and gateway refunds</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="refresh-btn" [disabled]="refreshing || loading" (click)="loadReturns(true)" aria-label="Refresh Status">
+        <span class="refresh-icon" [class.spinning]="refreshing">⟳</span>
+        <span>{{ refreshing ? 'Refreshing...' : 'Refresh Status' }}</span>
+      </button>
+      <a routerLink="/order-history" class="back-link">← Order History</a>
+    </div>
+  </header>
+
+  <!-- Filter tabs -->
+  <nav class="filter-tabs" aria-label="Filter return requests by status">
+    <button type="button" class="tab-btn" [class.active]="selectedFilter === 'All'" (click)="setFilter('All')">
+      All ({{ returns.length }})
+    </button>
+    <button type="button" class="tab-btn" [class.active]="selectedFilter === 'Requested'" (click)="setFilter('Requested')">
+      Requested
+    </button>
+    <button type="button" class="tab-btn" [class.active]="selectedFilter === 'Accepted'" (click)="setFilter('Accepted')">
+      Accepted
+    </button>
+    <button type="button" class="tab-btn" [class.active]="selectedFilter === 'Processing'" (click)="setFilter('Processing')">
+      Processing
+    </button>
+    <button type="button" class="tab-btn" [class.active]="selectedFilter === 'Processed'" (click)="setFilter('Processed')">
+      Processed
+    </button>
+    <button type="button" class="tab-btn" [class.active]="selectedFilter === 'Rejected'" (click)="setFilter('Rejected')">
+      Rejected
+    </button>
+  </nav>
+
+  @if (errorMessage) {
+    <div class="error-banner" role="alert">
+      <span>⚠ {{ errorMessage }}</span>
+      <button type="button" class="retry-link" (click)="loadReturns()">Retry</button>
+    </div>
+  }
+
+  @if (loading) {
+    <div class="loading-state">
+      <div class="golden-spinner"></div>
+      <p>Loading return &amp; refund status from server...</p>
+    </div>
+  } @else if (filteredReturns.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">📦</div>
+      <h2>No Return Requests Found</h2>
+      <p>
+        @if (selectedFilter !== 'All') {
+          No return requests match the selected status "{{ selectedFilter }}".
+        } @else {
+          You haven't submitted any return or refund requests yet. Eligible delivered items can be returned from your order history.
+        }
+      </p>
+      <div class="empty-actions">
+        @if (selectedFilter !== 'All') {
+          <button type="button" class="secondary-btn" (click)="setFilter('All')">View All Requests</button>
+        }
+        <a routerLink="/order-history" class="primary-btn">Go to Order History</a>
+      </div>
+    </div>
+  } @else {
+    <section class="returns-list" aria-label="Customer return requests">
+      @for (item of filteredReturns; track item.id) {
+        <article class="return-card">
+          <!-- Card Header -->
+          <div class="card-header">
+            <div class="request-meta">
+              <span class="request-id-badge">Return #{{ item.id }}</span>
+              <span class="order-id-badge">Order: {{ item.orderNumber }}</span>
+              <time class="request-date">{{ item.createdAt | date:'medium' }}</time>
+            </div>
+            <div class="status-badge-wrapper">
+              <span class="status-badge" [attr.data-status]="item.status">
+                {{ item.status | uppercase }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Product Details Section -->
+          <div class="card-product-section">
+            <div class="section-subheading">Purchased Product Details</div>
+            @if (item.items && item.items.length > 0) {
+              <div class="product-entries">
+                @for (prod of item.items; track $index) {
+                  <div class="product-entry-row">
+                    <div class="product-thumb-wrapper">
+                      <img [src]="prod.image || 'assets/placeholder.png'" [alt]="prod.name" class="original-product-img" />
+                      <span class="img-label">Original Product</span>
+                    </div>
+                    <div class="product-entry-info">
+                      <h3 class="product-name">{{ prod.name }}</h3>
+                      <div class="product-specs">
+                        <span>Quantity: <strong>{{ prod.quantity }}</strong></span>
+                        @if (prod.price) {
+                          <span>Purchase Price: <strong>₹{{ prod.price }}</strong></span>
+                          <span>Total: <strong>₹{{ prod.price * prod.quantity }}</strong></span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="generic-product-note">Sacred items associated with Order {{ item.orderNumber }}.</p>
+            }
+          </div>
+
+          <!-- Reason & Comments Section -->
+          <div class="reason-section">
+            <div class="reason-block">
+              <span class="reason-label">Reason for Return:</span>
+              <span class="reason-value">{{ item.reason }}</span>
+            </div>
+            @if (item.comments) {
+              <div class="comments-block">
+                <span class="reason-label">Additional Comments:</span>
+                <p class="comments-text">{{ item.comments }}</p>
+              </div>
+            }
+          </div>
+
+          <!-- Customer Uploaded Evidence Images -->
+          @if (item.evidenceImages && item.evidenceImages.length > 0) {
+            <div class="evidence-section">
+              <div class="evidence-header">
+                <span class="evidence-title">📸 Customer Evidence Images ({{ item.evidenceImages.length }})</span>
+                <span class="evidence-hint">Click image to inspect full-size photo</span>
+              </div>
+              <div class="evidence-grid">
+                @for (img of item.evidenceImages; track $index) {
+                  <div class="evidence-thumbnail-card" (click)="openPreview(resolveImg(img.url), 'Return evidence ' + ($index + 1))">
+                    <img [src]="resolveImg(img.url)" [alt]="'Evidence photo ' + ($index + 1)" class="evidence-img" loading="lazy" />
+                    <span class="zoom-badge">🔍 Zoom</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Admin Messages / Rejection Reason -->
+          @if (item.status === 'Rejected' && item.rejectionReason) {
+            <div class="rejection-box" role="alert">
+              <div class="rejection-header">
+                <span class="rejection-icon">✕</span>
+                <strong>Return Request Rejected</strong>
+              </div>
+              <p class="rejection-message">
+                <strong>Reason from Admin:</strong> {{ item.rejectionReason }}
+              </p>
+              <p class="rejection-note">This decision is final. For further assistance, contact our sacred support team.</p>
+            </div>
+          } @else if (item.adminMessage) {
+            <div class="admin-message-box">
+              <div class="admin-message-header">
+                <span class="admin-icon">🏛</span>
+                <strong>Store Admin Update:</strong>
+              </div>
+              <p class="admin-message-content">{{ item.adminMessage }}</p>
+            </div>
+          }
+
+          <!-- Vertical Status Timeline -->
+          <div class="timeline-container">
+            <h4 class="timeline-heading">Return Progress &amp; Status Timeline</h4>
+            <div class="vertical-timeline">
+              <!-- Step 1: Requested -->
+              <div class="timeline-step" [class.completed]="getStepState(item.status, 'Requested') === 'completed'" [class.active]="getStepState(item.status, 'Requested') === 'active'">
+                <div class="step-indicator">
+                  <span class="step-dot">1</span>
+                  <span class="step-line"></span>
+                </div>
+                <div class="step-content">
+                  <div class="step-title-row">
+                    <span class="step-title">Requested</span>
+                    @if (getStepState(item.status, 'Requested') === 'active') {
+                      <span class="step-status-tag active">In Review</span>
+                    }
+                  </div>
+                  <p class="step-desc">Return request submitted with evidence photos. Awaiting administrator inspection.</p>
+                  <time class="step-time">{{ item.createdAt | date:'medium' }}</time>
+                </div>
+              </div>
+
+              <!-- Step 2: Accepted / Rejected -->
+              @if (item.status === 'Rejected') {
+                <div class="timeline-step rejected">
+                  <div class="step-indicator">
+                    <span class="step-dot rejected">✕</span>
+                    <span class="step-line"></span>
+                  </div>
+                  <div class="step-content">
+                    <div class="step-title-row">
+                      <span class="step-title rejected-title">Rejected</span>
+                      <span class="step-status-tag rejected">Final Decision</span>
+                    </div>
+                    <p class="step-desc">{{ item.rejectionReason || 'Request rejected by store administrator.' }}</p>
+                  </div>
+                </div>
+              } @else {
+                <div class="timeline-step" [class.completed]="getStepState(item.status, 'Accepted') === 'completed'" [class.active]="getStepState(item.status, 'Accepted') === 'active'" [class.upcoming]="getStepState(item.status, 'Accepted') === 'upcoming'">
+                  <div class="step-indicator">
+                    <span class="step-dot">2</span>
+                    <span class="step-line"></span>
+                  </div>
+                  <div class="step-content">
+                    <div class="step-title-row">
+                      <span class="step-title">Accepted</span>
+                      @if (getStepState(item.status, 'Accepted') === 'active') {
+                        <span class="step-status-tag active">Approved</span>
+                      }
+                    </div>
+                    <p class="step-desc">
+                      @if (getStepState(item.status, 'Accepted') !== 'upcoming') {
+                        Return request approved. Refund eligibility verified.
+                      } @else {
+                        Awaiting administrator decision.
+                      }
+                    </p>
+                  </div>
+                </div>
+              }
+
+              <!-- Step 3: Processing -->
+              @if (item.status !== 'Rejected') {
+                <div class="timeline-step" [class.completed]="getStepState(item.status, 'Processing') === 'completed'" [class.active]="getStepState(item.status, 'Processing') === 'active'" [class.upcoming]="getStepState(item.status, 'Processing') === 'upcoming'">
+                  <div class="step-indicator">
+                    <span class="step-dot">3</span>
+                    <span class="step-line"></span>
+                  </div>
+                  <div class="step-content">
+                    <div class="step-title-row">
+                      <span class="step-title">Processing</span>
+                      @if (getStepState(item.status, 'Processing') === 'active') {
+                        <span class="step-status-tag active">Dispatching</span>
+                      }
+                    </div>
+                    <p class="step-desc">
+                      @if (getStepState(item.status, 'Processing') !== 'upcoming') {
+                        Refund initiated with payment gateway. Awaiting bank settlement.
+                      } @else {
+                        Refund will be initiated once return is accepted.
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Step 4: Processed -->
+                <div class="timeline-step" [class.completed]="getStepState(item.status, 'Processed') === 'completed'" [class.active]="getStepState(item.status, 'Processed') === 'active'" [class.upcoming]="getStepState(item.status, 'Processed') === 'upcoming'">
+                  <div class="step-indicator">
+                    <span class="step-dot">4</span>
+                  </div>
+                  <div class="step-content">
+                    <div class="step-title-row">
+                      <span class="step-title">Processed</span>
+                      @if (getStepState(item.status, 'Processed') === 'completed') {
+                        <span class="step-status-tag completed">Settled</span>
+                      }
+                    </div>
+                    <p class="step-desc">
+                      @if (getStepState(item.status, 'Processed') === 'completed') {
+                        Refund successfully completed and settled to original payment method.
+                      } @else {
+                        Confirmation and transaction details will appear here once settled.
+                      }
+                    </p>
+                    @if (item.refundedAt) {
+                      <time class="step-time">{{ item.refundedAt | date:'medium' }}</time>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Refund Summary Box (when refund details exist and return is NOT rejected) -->
+          @if (item.status !== 'Rejected' && item.status?.toLowerCase() !== 'rejected' && (item.refundAmount > 0 || item.refundReference || item.status === 'Processed')) {
+            <div class="refund-summary-box">
+              <div class="refund-summary-header">
+                <span class="refund-icon">💰</span>
+                <h4>Refund Transaction Information</h4>
+              </div>
+              <div class="refund-details-grid">
+                <div class="refund-stat">
+                  <span class="stat-label">Refund Amount:</span>
+                  <span class="stat-value gold">₹{{ item.refundAmount }}</span>
+                </div>
+                <div class="refund-stat">
+                  <span class="stat-label">Refund Method:</span>
+                  <span class="stat-value">{{ item.refundGateway }}</span>
+                </div>
+                @if (item.refundReference) {
+                  <div class="refund-stat">
+                    <span class="stat-label">Transaction Reference:</span>
+                    <span class="stat-value code-font">{{ item.refundReference }}</span>
+                  </div>
+                }
+                @if (item.refundedAt) {
+                  <div class="refund-stat">
+                    <span class="stat-label">Settlement Date:</span>
+                    <span class="stat-value">{{ item.refundedAt | date:'medium' }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Expandable Complete Status History -->
+          @if (item.statusHistory && item.statusHistory.length > 0) {
+            <div class="history-accordion">
+              <button type="button" class="history-toggle-btn" (click)="toggleHistory(item.id)">
+                <span>{{ isHistoryExpanded(item.id) ? '▾ Hide Detailed Audit Trail' : '▸ View Detailed Audit Trail (' + item.statusHistory.length + ' entries)' }}</span>
+              </button>
+              @if (isHistoryExpanded(item.id)) {
+                <div class="history-entries-table">
+                  @for (hist of item.statusHistory; track $index) {
+                    <div class="history-row">
+                      <time class="hist-time">{{ hist.timestamp | date:'short' }}</time>
+                      <span class="hist-transition">
+                        @if (hist.fromStatus) {
+                          {{ hist.fromStatus }} →
+                        }
+                        <strong>{{ hist.toStatus }}</strong>
+                      </span>
+                      <span class="hist-msg">{{ hist.message || 'Status updated' }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </article>
+      }
+    </section>
+  }
+
+  <!-- Image Preview Lightbox Modal -->
+  @if (previewImageUrl) {
+    <div class="lightbox-overlay" (click)="closePreview()" role="dialog" aria-modal="true" aria-label="Evidence preview">
+      <div class="lightbox-content" (click)="$event.stopPropagation()">
+        <button type="button" class="close-lightbox-btn" (click)="closePreview()" aria-label="Close preview">✕</button>
+        <img [src]="previewImageUrl" [alt]="previewImageAlt" class="lightbox-img" />
+        <p class="lightbox-caption">{{ previewImageAlt }}</p>
+      </div>
+    </div>
+  }
+</main>

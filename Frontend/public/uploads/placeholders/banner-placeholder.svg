@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bannerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8F1830" />
+      <stop offset="50%" stop-color="#30272A" />
+      <stop offset="100%" stop-color="#20233B" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="400" fill="url(#bannerGrad)" />
+  <circle cx="200" cy="200" r="160" fill="none" stroke="#D8B88E" stroke-width="1" opacity="0.3" />
+  <circle cx="1000" cy="200" r="160" fill="none" stroke="#B99A45" stroke-width="1" opacity="0.3" />
+  <text x="600" y="190" text-anchor="middle" font-family="'Cinzel', Georgia, serif" font-size="36" font-weight="700" letter-spacing="6" fill="#F0E7D5">VEDIC ASTROLOGY COLLECTION</text>
+  <text x="600" y="240" text-anchor="middle" font-family="'Inter', sans-serif" font-size="16" letter-spacing="3" fill="#D8B88E">ENERGIZED GEMSTONES • SACRED RUDRAKSHA • DIVINE YANTRAS</text>
+</svg>

@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 760" role="img" aria-labelledby="title description">
+  <title id="title">Navgraha Yantra</title>
+  <desc id="description">Illustrated golden Navgraha yantra engraved on a warm cream copper plate.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#382b32"/>
+      <stop offset=".55" stop-color="#71513f"/>
+      <stop offset="1" stop-color="#211f2c"/>
+    </linearGradient>
+    <radialGradient id="plate" cx=".46" cy=".38" r=".75">
+      <stop offset="0" stop-color="#f4dfb5"/>
+      <stop offset=".72" stop-color="#d8b88e"/>
+      <stop offset="1" stop-color="#9d7048"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8e6ac"/>
+      <stop offset=".45" stop-color="#b99a45"/>
+      <stop offset="1" stop-color="#755421"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="18"/>
+      <feOffset dy="18"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope=".45"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <pattern id="grain" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="4" cy="6" r="1" fill="#fff5d7" opacity=".18"/>
+      <circle cx="18" cy="16" r=".8" fill="#6d4d30" opacity=".2"/>
+    </pattern>
+    <g id="sun-mark" fill="none" stroke="url(#gold)" stroke-width="5">
+      <circle r="22"/>
+      <circle r="8"/>
+      <path d="M0-37v12m0 50v12m-37-37h12m50 0h12M-26-26l9 9m34 34 9 9m0-52-9 9m-34 34-9 9"/>
+    </g>
+  </defs>
+
+  <rect width="1000" height="760" fill="url(#background)"/>
+  <path d="M0 615c183-93 297-12 465-57s355-141 535-63v265H0Z" fill="#171c28" opacity=".42"/>
+  <circle cx="115" cy="109" r="2" fill="#f0e7d5" opacity=".65"/>
+  <circle cx="857" cy="112" r="2" fill="#f0e7d5" opacity=".7"/>
+  <circle cx="890" cy="272" r="1.5" fill="#f0e7d5" opacity=".55"/>
+  <circle cx="120" cy="365" r="1.5" fill="#f0e7d5" opacity=".55"/>
+
+  <g filter="url(#shadow)" transform="rotate(-4 500 380)">
+    <rect x="175" y="83" width="650" height="594" rx="24" fill="#503b32"/>
+    <rect x="191" y="99" width="618" height="562" rx="16" fill="url(#plate)" stroke="#f1d594" stroke-width="5"/>
+    <rect x="205" y="113" width="590" height="534" rx="10" fill="url(#grain)" stroke="#8d683d" stroke-width="2"/>
+    <rect x="222" y="130" width="556" height="500" rx="5" fill="none" stroke="#a47c3d" stroke-width="4"/>
+    <rect x="235" y="143" width="530" height="474" rx="2" fill="none" stroke="#f3dfa9" stroke-width="2"/>
+
+    <g fill="#8f1830" opacity=".92">
+      <circle cx="240" cy="151" r="8"/><circle cx="500" cy="151" r="8"/><circle cx="760" cy="151" r="8"/>
+      <circle cx="240" cy="380" r="8"/><circle cx="760" cy="380" r="8"/>
+      <circle cx="240" cy="609" r="8"/><circle cx="500" cy="609" r="8"/><circle cx="760" cy="609" r="8"/>
+    </g>
+
+    <g transform="translate(500 380)" fill="none" stroke="url(#gold)" stroke-width="4">
+      <rect x="-216" y="-216" width="432" height="432"/>
+      <path d="M-216-216 216 216M216-216-216 216"/>
+      <path d="M0-216 216 0 0 216-216 0Z"/>
+      <circle r="153"/>
+      <circle r="103"/>
+      <path d="M0-216V216M-216 0H216"/>
+      <path d="M-153-153 153 153M153-153-153 153" opacity=".65"/>
+    </g>
+
+    <g fill="#8f1830" font-family="Georgia,serif" font-size="37" font-weight="700" text-anchor="middle">
+      <text x="356" y="252">१</text><text x="500" y="252">६</text><text x="644" y="252">८</text>
+      <text x="356" y="391">७</text><text x="500" y="391">५</text><text x="644" y="391">३</text>
+      <text x="356" y="531">२</text><text x="500" y="531">४</text><text x="644" y="531">९</text>
+    </g>
+
+    <g transform="translate(500 380) scale(.76)">
+      <use href="#sun-mark"/>
+    </g>
+    <circle cx="500" cy="380" r="11" fill="#8f1830" stroke="#f5df9c" stroke-width="4"/>
+
+    <g fill="#8f1830">
+      <path d="m500 167 8 16 18 3-13 12 3 18-16-9-16 9 3-18-13-12 18-3z"/>
+      <path d="m500 544 8 16 18 3-13 12 3 18-16-9-16 9 3-18-13-12 18-3z"/>
+    </g>
+    <g fill="#6e4f30" font-family="Georgia,serif" font-size="19" text-anchor="middle">
+      <text x="500" y="121">ॐ नवग्रहाय नमः</text>
+      <text x="500" y="594" letter-spacing="5">NAVAGRAHA YANTRA</text>
+    </g>
+  </g>
+</svg>

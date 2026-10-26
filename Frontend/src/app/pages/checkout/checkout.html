@@ -1,0 +1,330 @@
+@if (orderConfirmedDetails) {
+<section class="order-confirmation-container">
+  <div class="page-title confirmation-page-title">
+    <div class="sacred-badge">
+      <span class="zodiac-symbol">✦</span>
+      <span>ORDER CONFIRMATION · आदेश पुष्टिकरण</span>
+      <span class="zodiac-symbol">✦</span>
+    </div>
+    <h1>Order Placed Successfully!</h1>
+    <p class="sanskrit-subtext">शुभ लाभ · Divine blessings on your sacred purchase</p>
+  </div>
+
+  <div class="confirmation-card">
+    <div class="conf-top-banner">
+
+      <div class="conf-order-meta">
+        <span class="conf-label">Order Reference</span>
+        <h2 class="conf-order-number">#{{ orderConfirmedDetails.orderNumber }}</h2>
+        <span class="conf-date">{{ orderConfirmedDetails.orderDate | date:'medium' }}</span>
+      </div>
+      <div class="conf-status-tag" [class.cod-status-tag]="orderConfirmedDetails.paymentMethod === 'Cash on Delivery'">
+        @if (orderConfirmedDetails.paymentMethod === 'Cash on Delivery') {
+        <span>⏳ Awaiting Admin Confirmation</span>
+        } @else {
+        <span>✓ Payment Verified &amp; Placed</span>
+        }
+      </div>
+    </div>
+
+    <div class="conf-content-grid">
+      <!-- Delivery Details -->
+      <div class="conf-section-box">
+        <div class="conf-box-header">
+          <span>📍 Shipping Address</span>
+        </div>
+        <p class="conf-recipient-name"><strong>{{ orderConfirmedDetails.customerName }}</strong></p>
+        <p class="conf-address-text">{{ orderConfirmedDetails.address }}</p>
+        <p class="conf-address-text">{{ orderConfirmedDetails.city }}, {{ orderConfirmedDetails.state }} - {{
+          orderConfirmedDetails.pin }}</p>
+        <p class="conf-address-text">{{ orderConfirmedDetails.country }}</p>
+        <p class="conf-contact-info">📱 {{ orderConfirmedDetails.mobile }} | ✉️ {{ orderConfirmedDetails.email }}</p>
+      </div>
+
+      <!-- Payment & Status Summary -->
+      <div class="conf-section-box">
+        <div class="conf-box-header">
+          <span>💳 Payment &amp; Status</span>
+        </div>
+        <div class="conf-info-row">
+          <span class="info-k">Payment Method:</span>
+          <strong class="info-v">{{ orderConfirmedDetails.paymentMethod }}</strong>
+        </div>
+        <div class="conf-info-row">
+          <span class="info-k">Payment Status:</span>
+          <span class="info-v badge-val"
+            [class.pending-val]="orderConfirmedDetails.paymentStatus.toLowerCase() === 'pending'">
+            {{ orderConfirmedDetails.paymentStatus }}
+          </span>
+        </div>
+        <div class="conf-info-row">
+          <span class="info-k">Order Status:</span>
+          <strong class="info-v">{{ orderConfirmedDetails.orderStatus }}</strong>
+        </div>
+        <div class="conf-info-row total-highlight">
+          <span class="info-k">Total Amount:</span>
+          <strong class="info-v price-highlight">₹{{ orderConfirmedDetails.total | number:'1.2-2' }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items Ordered -->
+    @if (orderConfirmedDetails.items && orderConfirmedDetails.items.length > 0) {
+    <div class="conf-items-box">
+      <div class="conf-box-header">
+        <span>📦 Order Items ({{ orderConfirmedDetails.items.length }})</span>
+      </div>
+      <div class="conf-items-list">
+        @for (item of orderConfirmedDetails.items; track $index) {
+        <div class="conf-item-row">
+          <span class="conf-item-title">{{ item.title }} × {{ item.quantity }}</span>
+          <strong class="conf-item-price">₹{{ item.price * item.quantity | number:'1.2-2' }}</strong>
+        </div>
+        }
+      </div>
+    </div>
+    }
+
+    <div class="conf-notice-box">
+      <p>
+        ✓ <strong>Payment Confirmed:</strong> Your payment has been securely verified via Easebuzz. Your sanctified sacred items are
+        being prepared for dispatch.
+      </p>
+    </div>
+
+    <div class="conf-action-buttons">
+      <button type="button" class="conf-btn primary-action" (click)="goToOrderHistory()">
+        📜 View in Order History
+      </button>
+      <button type="button" class="conf-btn secondary-action" (click)="goToTrackOrder()">
+        🚀 Track Order
+      </button>
+      <button type="button" class="conf-btn subtle-action" (click)="continueShopping()">
+        🛍️ Continue Shopping
+      </button>
+    </div>
+  </div>
+</section>
+} @else {
+<section class="page-title">
+  <div class="sacred-badge">
+    <span class="zodiac-symbol">✦</span>
+    <span>VEDIC CONSECRATION &amp; SECURE CHECKOUT · सुरक्षित भुगतान</span>
+    <span class="zodiac-symbol">✦</span>
+  </div>
+  <h1>Checkout</h1>
+  <p>Secure payment and delivery</p>
+  <p class="sanskrit-subtext">शुभ लाभ · 100% Certified Authentic Vedic Remedies</p>
+</section>
+
+<section class="checkout">
+  <form class="checkout-form" (ngSubmit)="placeOrder()" novalidate>
+
+    <h2>Delivery Details</h2>
+
+    <div class="form-grid">
+      <div class="delivery-field-group">
+        <label for="full-name"><span class="field-label"><span class="required-star">*</span> Full Name</span></label>
+        <input id="full-name" type="text" name="fullName" [(ngModel)]="fullName"
+          autocomplete="name" required>
+      </div>
+
+      <div class="delivery-field-group">
+        <label for="mobile"><span class="field-label"><span class="required-star">*</span> Mobile</span></label>
+        <input id="mobile" type="tel" name="mobile" [(ngModel)]="mobile"
+          autocomplete="tel" required>
+      </div>
+
+      <div class="delivery-field-group">
+        <label for="email"><span class="field-label"><span class="required-star">*</span> Email</span></label>
+        <input id="email" type="email" name="email" [(ngModel)]="email" autocomplete="email" required>
+      </div>
+
+      <div class="delivery-field-group">
+        <label for="city"><span class="field-label"><span class="required-star">*</span> City</span></label>
+        <input id="city" type="text" name="city" [(ngModel)]="city"
+          autocomplete="address-level2" required>
+      </div>
+
+      <div class="delivery-field-group">
+        <label for="state"><span class="field-label"><span class="required-star">*</span> State</span></label>
+        <input id="state" type="text" name="state" [(ngModel)]="state"
+          autocomplete="address-level1" required>
+      </div>
+
+      <div class="delivery-field-group">
+        <label for="pin"><span class="field-label"><span class="required-star">*</span> PIN Code</span></label>
+        <input id="pin" type="text" name="pin" [(ngModel)]="pin"
+          autocomplete="postal-code" required>
+      </div>
+    </div>
+
+    <div class="delivery-field-group full-width-field">
+      <label for="address"><span class="field-label"><span class="required-star">*</span> Address</span></label>
+      <textarea id="address" name="address" [(ngModel)]="address"
+        autocomplete="street-address" rows="4" required>
+      </textarea>
+    </div>
+
+    <div class="delivery-field-group full-width-field">
+      <label for="country"><span class="field-label"><span class="required-star">*</span> Country</span></label>
+      <input id="country" type="text" name="country" [(ngModel)]="country"
+        autocomplete="country-name" required>
+    </div>
+
+    <div class="payment-heading-row">
+      <h2 class="payment-heading">Payment Method</h2>
+    </div>
+    <div class="payment-options-grid">
+
+
+      <!-- Option 2: Easebuzz Online Payment -->
+      <div class="payment-option-card" [class.selected]="paymentMethod === 'easebuzz'"
+        (click)="paymentMethod = 'easebuzz'" role="radio" [attr.aria-checked]="paymentMethod === 'easebuzz'"
+        tabindex="0">
+        <div class="option-header">
+          <input type="radio" id="pay-easebuzz" name="paymentOption" value="easebuzz" [(ngModel)]="paymentMethod">
+          <div class="option-label-wrapper">
+            <label for="pay-easebuzz" class="option-label">
+              <span class="option-badge-icon">💳</span>
+              <div>
+                <div class="option-title-row">
+                  <strong>Easebuzz Online Payment</strong>
+                  <span class="instant-tag">⚡ Fast &amp; Secure</span>
+                </div>
+                <p class="option-subtitle">Pay securely via Easebuzz with UPI, Credit / Debit Card, NetBanking, or EMI
+                </p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        @if (paymentMethod === 'easebuzz') {
+        <div class="option-expanded-details">
+          <div class="methods-badges-row">
+            <div class="method-badge upi-badge">
+              <span class="badge-icon">⚡</span>
+              <span class="badge-label">UPI (GPay / PhonePe / Paytm / BHIM)</span>
+            </div>
+            <div class="method-badge card-badge">
+              <span class="badge-icon">💳</span>
+              <span class="badge-label">Credit &amp; Debit Cards</span>
+            </div>
+            <div class="method-badge net-badge">
+              <span class="badge-icon">🏛️</span>
+              <span class="badge-label">NetBanking (Major Banks)</span>
+            </div>
+            <div class="method-badge wallet-badge">
+              <span class="badge-icon">📱</span>
+              <span class="badge-label">EMI &amp; Wallets</span>
+            </div>
+          </div>
+
+
+
+        </div>
+        }
+      </div>
+
+    </div>
+
+    @if (errorMessage) {
+    <p class="checkout-message error-message" role="alert">{{ errorMessage }}</p>
+    }
+
+    @if (statusMessage) {
+    <p class="checkout-message status-message" role="status">{{ statusMessage }}</p>
+    }
+
+    @if (verificationAttempt) {
+    <button class="retry-verification" type="button" [disabled]="isVerifying" (click)="retryVerification()">
+      {{ isVerifying ? 'Checking payment...' : 'Retry payment verification' }}
+    </button>
+    }
+
+    <button type="submit" class="primary-btn place-order"
+      [disabled]="isSubmitting || isVerifying || isGatewayOpen || hasPendingVerification">
+      @if (isSubmitting) {
+      Processing Checkout...
+      } @else if (isVerifying) {
+      Verifying Payment...
+      } @else if (isGatewayOpen) {
+      Complete Payment in Gateway
+      } @else {
+      Proceed to Pay · ₹{{ cartService.getSubtotal() }}
+      }
+    </button>
+  </form>
+
+
+  <aside class="order-summary payment-card">
+    <h2>Order Summary</h2>
+
+    @for (item of cartService.getItems(); track item.product.id) {
+    <div class="summary-item">
+      <span>{{ item.product.name }} × {{ item.quantity }}</span>
+      <strong>₹{{ item.product.price * item.quantity }}</strong>
+    </div>
+    }
+
+    <hr>
+
+    <div class="summary-total">
+      <span>Total</span>
+      <strong>₹{{ cartService.getSubtotal() }}</strong>
+    </div>
+    <p class="secure-note">Online payments are verified securely before your order is confirmed.</p>
+  </aside>
+</section>
+}
+
+@if (isEasebuzzModalOpen && activeEasebuzzRecord) {
+<div class="easebuzz-modal-backdrop" (click)="closeEasebuzzModal()">
+  <div class="easebuzz-modal-card" (click)="$event.stopPropagation()" role="dialog" aria-modal="true"
+    aria-labelledby="ebz-modal-title">
+    <div class="ebz-modal-header">
+      <div class="ebz-brand-title">
+        <span class="ebz-logo-badge">🛡️ Easebuzz</span>
+        <span class="ebz-sandbox-tag">TEST SANDBOX</span>
+      </div>
+      <button type="button" class="ebz-close-btn" (click)="closeEasebuzzModal()" aria-label="Close modal">✕</button>
+    </div>
+
+    <div class="ebz-modal-body">
+      <div class="ebz-amount-card">
+        <span class="ebz-amount-label">Amount Payable</span>
+        <div class="ebz-amount-value">₹{{ (activeEasebuzzRecord.amount / 100).toFixed(2) }}</div>
+        <div class="ebz-txn-details">
+          <span>TXN: <code>{{ activeEasebuzzRecord.txnid }}</code></span>
+          <span>Key: <code>{{ activeEasebuzzRecord.keyId }}</code></span>
+        </div>
+      </div>
+
+      <div class="ebz-sandbox-notice">
+        <div class="notice-icon">✦</div>
+        <div class="notice-content">
+          <strong>Easebuzz Test Mode Sandbox</strong>
+          <p>
+            Simulate and test your Easebuzz checkout flow below. Once valid merchant salt credentials from your Easebuzz
+            dashboard are updated in <code>Backend/.env</code>, live hosted checkout will automatically open.
+          </p>
+        </div>
+      </div>
+
+      <div class="ebz-action-buttons">
+        <button type="button" class="ebz-btn ebz-success-btn" (click)="simulateEasebuzzSuccess()">
+          <span>✓ Pay ₹{{ (activeEasebuzzRecord.amount / 100).toFixed(2) }} (Simulate Success)</span>
+        </button>
+
+        <button type="button" class="ebz-btn ebz-failure-btn" (click)="simulateEasebuzzFailure()">
+          <span>✕ Simulate Payment Failure</span>
+        </button>
+
+        <button type="button" class="ebz-btn ebz-cancel-btn" (click)="simulateEasebuzzCancel()">
+          <span>Cancel Transaction</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+}

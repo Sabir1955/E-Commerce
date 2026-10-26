@@ -1,0 +1,519 @@
+<div class="astro-dashboard-wrapper">
+  <!-- Subtle Background Starfield & Planetary Art -->
+  <div class="space-ambient-bg" aria-hidden="true">
+    <div class="stars-layer-1"></div>
+    <div class="stars-layer-2"></div>
+    <div class="cosmic-nebula-glow"></div>
+  </div>
+
+  <!-- TOP HEADER / SEARCH & PROFILE BAR -->
+  <header class="top-nav-bar">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        placeholder="Search orders, customers, products..."
+        aria-label="Global search">
+    </div>
+
+    <div class="top-nav-right">
+      <div class="datetime-pill">
+        <span class="calendar-icon">📅</span>
+        <div class="datetime-text">
+          <span class="date">{{ currentDateString }}</span>
+          <span class="time">{{ currentTimeString }}</span>
+        </div>
+      </div>
+
+      <button type="button" class="notif-btn" aria-label="Notifications">
+        <span class="bell-icon">🔔</span>
+        <span class="notif-badge">3</span>
+      </button>
+
+      <div class="admin-profile-pill">
+        <div class="avatar-circle">A</div>
+        <div class="profile-info">
+          <span class="profile-name">Store Admin</span>
+          <span class="profile-email">admin@example.com</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- PAGE HEADER & CELESTIAL BRAND BANNER -->
+  <section class="page-header-row">
+    <div class="page-title-col">
+      <nav class="breadcrumb-trail" aria-label="Breadcrumb">
+        <span class="crumb-link">Reports</span>
+        <span class="crumb-sep">›</span>
+        <span class="crumb-current">Date-wise Reports</span>
+      </nav>
+      <h1 class="page-title">Date-wise Orders &amp; Sales Report</h1>
+      <p class="page-subtitle">Track your business performance day by day with detailed analytics</p>
+    </div>
+
+    <!-- Glowing Brand Saturn Card -->
+    <div class="brand-saturn-banner" aria-hidden="true">
+      <div class="saturn-planet-wrapper">
+        <div class="planet-sphere"></div>
+        <div class="planet-ring-back"></div>
+        <div class="planet-ring-front"></div>
+      </div>
+      <div class="brand-crest-card">
+        <img src="images/logo.png" alt="Astro Nirvan" class="banner-logo-img">
+        <div class="banner-brand-text">
+          <span class="banner-brand-name">ASTRO NIRVAN</span>
+          <span class="banner-brand-slogan">ALIGN YOUR LIFE</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DATE FILTER TOOLBAR -->
+  <section class="filter-toolbar-card">
+    <div class="date-pickers-group">
+      <div class="picker-field">
+        <label for="from-date-input">From Date</label>
+        <div class="input-with-icon">
+          <span class="field-icon">📅</span>
+          <input
+            id="from-date-input"
+            type="date"
+            [(ngModel)]="startDate"
+            (change)="onCustomDateChange()"
+            class="cosmic-date-input" />
+        </div>
+      </div>
+
+      <div class="picker-field">
+        <label for="to-date-input">To Date</label>
+        <div class="input-with-icon">
+          <span class="field-icon">📅</span>
+          <input
+            id="to-date-input"
+            type="date"
+            [(ngModel)]="endDate"
+            (change)="onCustomDateChange()"
+            class="cosmic-date-input" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Filter Pills -->
+    <div class="quick-filter-pills" role="group" aria-label="Quick date filters">
+      <button
+        type="button"
+        class="quick-pill"
+        [class.active]="activeQuickFilter === 'today'"
+        (click)="applyQuickFilter('today')">
+        Today
+      </button>
+      <button
+        type="button"
+        class="quick-pill"
+        [class.active]="activeQuickFilter === 'yesterday'"
+        (click)="applyQuickFilter('yesterday')">
+        Yesterday
+      </button>
+      <button
+        type="button"
+        class="quick-pill"
+        [class.active]="activeQuickFilter === 'last7'"
+        (click)="applyQuickFilter('last7')">
+        Last 7 Days
+      </button>
+      <button
+        type="button"
+        class="quick-pill"
+        [class.active]="activeQuickFilter === 'thisMonth'"
+        (click)="applyQuickFilter('thisMonth')">
+        This Month
+      </button>
+      <button
+        type="button"
+        class="quick-pill"
+        [class.active]="activeQuickFilter === 'prevMonth'"
+        (click)="applyQuickFilter('prevMonth')">
+        Previous Month
+      </button>
+    </div>
+
+    <!-- Actions: Apply, Reset, Export -->
+    <div class="toolbar-actions">
+      <button type="button" class="btn-apply-filter" (click)="loadReport()" [disabled]="isLoading">
+        <span class="btn-icon">⚡</span> Apply Filter
+      </button>
+
+      <button type="button" class="btn-reset-filter" (click)="resetFilters()" title="Reset to default">
+        <span class="btn-icon">🔄</span> Reset
+      </button>
+
+      <div class="export-dropdown-wrapper">
+        <button
+          type="button"
+          class="btn-export-trigger"
+          (click)="toggleExportDropdown()"
+          [attr.aria-expanded]="exportDropdownOpen">
+          <span class="btn-icon">📥</span> Export ▾
+        </button>
+
+        @if (exportDropdownOpen) {
+          <div class="export-menu">
+            <button type="button" (click)="exportCsv()">
+              <span>📄</span> Export CSV
+            </button>
+            <button type="button" (click)="exportExcel()">
+              <span>📊</span> Export Excel (.xls)
+            </button>
+            <button type="button" (click)="printReport()">
+              <span>🖨️</span> Print Report
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- LOADING & ERROR STATES -->
+  @if (isLoading && !reportData) {
+    <div class="cosmic-loading-banner">
+      <div class="orbit-spinner"></div>
+      <p>Gathering celestial sales analytics from database...</p>
+    </div>
+  }
+
+  @if (isError) {
+    <div class="cosmic-error-banner">
+      <span class="error-icon">⚠️</span>
+      <div class="error-text">
+        <strong>Query Error:</strong> {{ errorMessage }}
+      </div>
+      <button type="button" class="btn-retry" (click)="loadReport()">Retry</button>
+    </div>
+  }
+
+  <!-- 6 ASTRO KPI SUMMARY CARDS -->
+  @if (reportData) {
+    <section class="kpi-grid-container" aria-label="Key Performance Indicators">
+      <!-- 1. Total Orders -->
+      <article class="kpi-card card-blue">
+        <div class="card-icon-circle">🛒</div>
+        <div class="card-metric-info">
+          <span class="card-label">Total Orders</span>
+          <strong class="card-value">{{ displayTotalOrders.toLocaleString('en-IN') }}</strong>
+          <div class="card-trend" [class.trend-up]="(reportData.summary.comparison.totalOrdersChangePct || 0) >= 0" [class.trend-down]="(reportData.summary.comparison.totalOrdersChangePct || 0) < 0">
+            @if (reportData.summary.comparison.totalOrdersChangePct !== null) {
+              <span>{{ (reportData.summary.comparison.totalOrdersChangePct || 0) >= 0 ? '↑' : '↓' }} {{ reportData.summary.comparison.totalOrdersChangePct }}%</span>
+            } @else {
+              <span>— Current</span>
+            }
+          </div>
+        </div>
+        <div class="card-wave-glow wave-blue"></div>
+      </article>
+
+      <!-- 2. Dispatched -->
+      <article class="kpi-card card-amber">
+        <div class="card-icon-circle">🚚</div>
+        <div class="card-metric-info">
+          <span class="card-label">Dispatched</span>
+          <strong class="card-value">{{ displayDispatched.toLocaleString('en-IN') }}</strong>
+          <div class="card-trend" [class.trend-up]="(reportData.summary.comparison.ordersDispatchedChangePct || 0) >= 0" [class.trend-down]="(reportData.summary.comparison.ordersDispatchedChangePct || 0) < 0">
+            @if (reportData.summary.comparison.ordersDispatchedChangePct !== null) {
+              <span>{{ (reportData.summary.comparison.ordersDispatchedChangePct || 0) >= 0 ? '↑' : '↓' }} {{ reportData.summary.comparison.ordersDispatchedChangePct }}%</span>
+            } @else {
+              <span>— Current</span>
+            }
+          </div>
+        </div>
+        <div class="card-wave-glow wave-amber"></div>
+      </article>
+
+      <!-- 3. Delivered -->
+      <article class="kpi-card card-emerald">
+        <div class="card-icon-circle">📦</div>
+        <div class="card-metric-info">
+          <span class="card-label">Delivered</span>
+          <strong class="card-value">{{ displayDelivered.toLocaleString('en-IN') }}</strong>
+          <div class="card-trend" [class.trend-up]="(reportData.summary.comparison.ordersDeliveredChangePct || 0) >= 0" [class.trend-down]="(reportData.summary.comparison.ordersDeliveredChangePct || 0) < 0">
+            @if (reportData.summary.comparison.ordersDeliveredChangePct !== null) {
+              <span>{{ (reportData.summary.comparison.ordersDeliveredChangePct || 0) >= 0 ? '↑' : '↓' }} {{ reportData.summary.comparison.ordersDeliveredChangePct }}%</span>
+            } @else {
+              <span>— Current</span>
+            }
+          </div>
+        </div>
+        <div class="card-wave-glow wave-emerald"></div>
+      </article>
+
+      <!-- 4. Cancelled -->
+      <article class="kpi-card card-rose">
+        <div class="card-icon-circle">🚫</div>
+        <div class="card-metric-info">
+          <span class="card-label">Cancelled</span>
+          <strong class="card-value">{{ displayCancelled.toLocaleString('en-IN') }}</strong>
+          <div class="card-trend" [class.trend-down]="(reportData.summary.comparison.ordersCancelledChangePct || 0) > 0" [class.trend-up]="(reportData.summary.comparison.ordersCancelledChangePct || 0) <= 0">
+            @if (reportData.summary.comparison.ordersCancelledChangePct !== null) {
+              <span>{{ (reportData.summary.comparison.ordersCancelledChangePct || 0) > 0 ? '↑' : '↓' }} {{ reportData.summary.comparison.ordersCancelledChangePct }}%</span>
+            } @else {
+              <span>— Current</span>
+            }
+          </div>
+        </div>
+        <div class="card-wave-glow wave-rose"></div>
+      </article>
+
+      <!-- 5. Pending -->
+      <article class="kpi-card card-purple">
+        <div class="card-icon-circle">⏱</div>
+        <div class="card-metric-info">
+          <span class="card-label">Pending</span>
+          <strong class="card-value">{{ displayPending.toLocaleString('en-IN') }}</strong>
+          <div class="card-trend" [class.trend-down]="(reportData.summary.comparison.ordersPendingChangePct || 0) > 0" [class.trend-up]="(reportData.summary.comparison.ordersPendingChangePct || 0) <= 0">
+            @if (reportData.summary.comparison.ordersPendingChangePct !== null) {
+              <span>{{ (reportData.summary.comparison.ordersPendingChangePct || 0) > 0 ? '↑' : '↓' }} {{ reportData.summary.comparison.ordersPendingChangePct }}%</span>
+            } @else {
+              <span>— Current</span>
+            }
+          </div>
+        </div>
+        <div class="card-wave-glow wave-purple"></div>
+      </article>
+
+      <!-- 6. Total Sales -->
+      <article class="kpi-card card-gold">
+        <div class="card-icon-circle">₹</div>
+        <div class="card-metric-info">
+          <span class="card-label">Total Sales</span>
+          <strong class="card-value">₹ {{ displaySales.toLocaleString('en-IN') }}</strong>
+          <div class="card-trend" [class.trend-up]="(reportData.summary.comparison.totalSalesChangePct || 0) >= 0" [class.trend-down]="(reportData.summary.comparison.totalSalesChangePct || 0) < 0">
+            @if (reportData.summary.comparison.totalSalesChangePct !== null) {
+              <span>{{ (reportData.summary.comparison.totalSalesChangePct || 0) >= 0 ? '↑' : '↓' }} {{ reportData.summary.comparison.totalSalesChangePct }}%</span>
+            } @else {
+              <span>— Current</span>
+            }
+          </div>
+        </div>
+        <div class="card-wave-glow wave-gold"></div>
+      </article>
+    </section>
+
+    <!-- ANALYTICS VISUALIZATION SECTION: MAIN GRAPH + STATUS DONUT -->
+    <section class="charts-row-container">
+      <!-- Main Trend Chart -->
+      <div class="chart-card trend-chart-card">
+        <div class="chart-card-header">
+          <div class="chart-title-group">
+            <span class="chart-title-icon">📊</span>
+            <h2>Orders &amp; Sales Trend</h2>
+          </div>
+
+          <div class="chart-header-controls">
+            <label for="interval-select" class="visually-hidden">Select Interval</label>
+            <select
+              id="interval-select"
+              [ngModel]="selectedInterval"
+              (ngModelChange)="setInterval($event)"
+              class="interval-select-input">
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="chart-viewport" #trendChartContainer></div>
+      </div>
+
+      <!-- Order Status Distribution Donut -->
+      <div class="chart-card donut-chart-card">
+        <div class="chart-card-header">
+          <div class="chart-title-group">
+            <span class="chart-title-icon">🍩</span>
+            <h2>Order Status Distribution</h2>
+          </div>
+        </div>
+
+        <div class="chart-viewport" #donutChartContainer></div>
+      </div>
+    </section>
+
+    <!-- DATE-WISE DETAILED REPORT TABLE -->
+    <section class="table-card-container">
+      <div class="table-card-header">
+        <div class="table-title-group">
+          <div class="table-header-icon">📅</div>
+          <div>
+            <h2>Date-wise Detailed Report</h2>
+            <p>Day wise breakdown of orders, status and sales amount</p>
+          </div>
+        </div>
+
+        <div class="table-search-box">
+          <span class="search-glass-icon">🔍</span>
+          <input
+            type="text"
+            placeholder="Search by date..."
+            [(ngModel)]="searchDate"
+            (input)="applyTableSearch()"
+            aria-label="Filter rows by date">
+        </div>
+      </div>
+
+      <div class="table-responsive-wrapper">
+        <table class="astro-report-table">
+          <thead>
+            <tr>
+              <th scope="col" (click)="toggleSort()" class="sortable-th">
+                Date {{ sortOrder === 'desc' ? '▼' : '▲' }}
+              </th>
+              <th scope="col">Orders Received</th>
+              <th scope="col">Confirmed</th>
+              <th scope="col">Dispatched</th>
+              <th scope="col">Delivered</th>
+              <th scope="col">Cancelled</th>
+              <th scope="col">Pending</th>
+              <th scope="col">Sales Amount</th>
+              <th scope="col">Cancelled Amount</th>
+              <th scope="col" class="th-center">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of filteredRows; track row.rawDate) {
+              <tr class="table-data-row">
+                <td class="td-date">
+                  <strong>{{ row.date }}</strong>
+                </td>
+                <td class="td-number">{{ row.ordersReceived }}</td>
+                <td class="td-number td-confirmed">{{ row.confirmed || 0 }}</td>
+                <td class="td-number td-dispatched">{{ row.dispatched }}</td>
+                <td class="td-number td-delivered">{{ row.delivered }}</td>
+                <td class="td-number td-cancelled">{{ row.cancelled }}</td>
+                <td class="td-number td-pending">{{ row.pending }}</td>
+                <td class="td-amount td-sales">₹ {{ row.salesAmount.toLocaleString('en-IN') }}</td>
+                <td class="td-amount td-cancelled-amt">₹ {{ row.cancelledAmount.toLocaleString('en-IN') }}</td>
+                <td class="td-center">
+                  <button
+                    type="button"
+                    class="btn-view-row"
+                    (click)="openDrillDown(row.rawDate)"
+                    title="View order details for {{ row.date }}">
+                    👁️
+                  </button>
+                </td>
+              </tr>
+            }
+            @if (filteredRows.length === 0) {
+              <tr>
+                <td colspan="10" class="td-empty">
+                  No records found matching the selected dates or search criteria.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+
+  <!-- DRILL-DOWN ORDER DETAILS MODAL -->
+  @if (drillDownOpen) {
+    <div class="modal-backdrop" (click)="closeDrillDown()">
+      <div class="modal-dialog-card" (click)="$event.stopPropagation()">
+        <header class="modal-header">
+          <div class="modal-title-wrap">
+            <span class="modal-icon">📜</span>
+            <div>
+              <h3>Orders on {{ selectedDateForDrillDown }}</h3>
+              <p>Drill-down breakdown of individual customer transactions</p>
+            </div>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="closeDrillDown()">✕</button>
+        </header>
+
+        <!-- Status Filter Tabs in Modal -->
+        <div class="modal-filter-tabs">
+          <button type="button" [class.active]="drillDownStatusFilter === 'all'" (click)="filterDrillDown('all')">
+            All ({{ drillDownOrders.length }})
+          </button>
+          <button type="button" [class.active]="drillDownStatusFilter === 'delivered'" (click)="filterDrillDown('delivered')">
+            Delivered
+          </button>
+          <button type="button" [class.active]="drillDownStatusFilter === 'shipped'" (click)="filterDrillDown('shipped')">
+            Dispatched
+          </button>
+          <button type="button" [class.active]="drillDownStatusFilter === 'processing'" (click)="filterDrillDown('processing')">
+            Processing
+          </button>
+          <button type="button" [class.active]="drillDownStatusFilter === 'placed'" (click)="filterDrillDown('placed')">
+            Placed
+          </button>
+          <button type="button" [class.active]="drillDownStatusFilter === 'cancelled'" (click)="filterDrillDown('cancelled')">
+            Cancelled
+          </button>
+        </div>
+
+        <div class="modal-body-content">
+          @if (drillDownLoading) {
+            <div class="modal-loading-indicator">
+              <div class="orbit-spinner-small"></div>
+              <span>Fetching order transaction details...</span>
+            </div>
+          } @else if (filteredDrillDownOrders.length === 0) {
+            <div class="modal-empty-state">
+              No orders found for this status on {{ selectedDateForDrillDown }}.
+            </div>
+          } @else {
+            <div class="modal-orders-list">
+              @for (ord of filteredDrillDownOrders; track ord._id) {
+                <div class="drilldown-order-card">
+                  <div class="drilldown-card-top">
+                    <span class="order-id-badge">{{ ord.orderNumber }}</span>
+                    <span class="order-status-pill" [ngClass]="getStatusClass(ord.status)">
+                      {{ ord.status }}
+                    </span>
+                  </div>
+
+                  <div class="drilldown-card-middle">
+                    <div class="customer-info">
+                      <strong>{{ ord.customerName }}</strong>
+                      <span>{{ ord.customerEmail }}</span>
+                      @if (ord.customerMobile) {
+                        <span>{{ ord.customerMobile }}</span>
+                      }
+                    </div>
+
+                    <div class="order-items-snippet">
+                      <span class="items-count">{{ ord.itemsCount }} item(s):</span>
+                      <p class="items-summary">{{ ord.itemsSummary }}</p>
+                    </div>
+
+                    <div class="order-total-block">
+                      <span class="total-label">Total Amount</span>
+                      <strong class="total-val">₹ {{ ord.total.toLocaleString('en-IN') }}</strong>
+                      <small class="pay-method">{{ ord.paymentMethod }} · {{ ord.paymentStatus }}</small>
+                    </div>
+                  </div>
+
+                  @if (ord.courierName || ord.trackingId) {
+                    <div class="drilldown-card-bottom">
+                      <span class="courier-badge">📦 {{ ord.courierName }}: {{ ord.trackingId }}</span>
+                      @if (ord.deliveredAt) {
+                        <span class="delivered-time">Delivered: {{ ord.deliveredAt | date:'short' }}</span>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="btn-done" (click)="closeDrillDown()">Close</button>
+        </footer>
+      </div>
+    </div>
+  }
+</div>

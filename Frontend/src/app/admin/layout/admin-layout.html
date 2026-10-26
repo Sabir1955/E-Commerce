@@ -1,0 +1,286 @@
+<section class="admin">
+  <!-- Mobile Header Bar -->
+  <header class="admin-mobile-topbar" aria-label="Mobile admin header">
+    <button
+      type="button"
+      class="mobile-menu-toggle"
+      (click)="toggleMobileSidebar()"
+      [attr.aria-expanded]="mobileSidebarOpen"
+      aria-label="Toggle navigation menu">
+      <span class="menu-icon">{{ mobileSidebarOpen ? '✕' : '☰' }}</span>
+    </button>
+
+    <a class="mobile-brand" routerLink="/admin" (click)="closeMobileSidebar()">
+      <img src="images/logo.png" alt="Astro Nirvan Logo" class="admin-mobile-logo-img">
+      <span class="brand-title">Astro Nirvan <strong>Admin</strong></span>
+    </a>
+
+  </header>
+
+  <!-- Mobile Drawer Backdrop -->
+  @if (mobileSidebarOpen) {
+    <div
+      class="sidebar-backdrop"
+      (click)="closeMobileSidebar()"
+      aria-hidden="true"></div>
+  }
+
+  <div class="admin-layout">
+    <!-- Fixed Left Sidebar -->
+    <aside
+      class="admin-sidebar"
+      [class.open]="mobileSidebarOpen"
+      aria-label="Admin navigation">
+
+      <!-- Brand -->
+      <a class="sidebar-brand" routerLink="/admin" (click)="closeMobileSidebar()">
+        <img src="images/logo.png" alt="Astro Nirvan Logo" class="admin-sidebar-logo-img">
+        <span class="brand-text">
+          <strong>Astro Nirvan</strong>
+          <small>ADMIN PANEL</small>
+        </span>
+      </a>
+
+
+      <!-- Navigation Links -->
+      <nav class="sidebar-nav">
+        <p class="sidebar-label">MANAGEMENT</p>
+
+        <a
+          class="dashboard-nav-item"
+          routerLink="/admin"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMobileSidebar()">
+          <span class="nav-icon">📊</span>
+          <span class="nav-text">Dashboard</span>
+        </a>
+
+        <a
+          routerLink="/admin/categories"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMobileSidebar()">
+          <span class="nav-icon">☯</span>
+          <span class="nav-text">Category Management</span>
+        </a>
+
+        <a
+          routerLink="/admin/products"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMobileSidebar()">
+          <span class="nav-icon">📦</span>
+          <span class="nav-text">Product Management</span>
+        </a>
+
+        <a
+          routerLink="/admin/inventory"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMobileSidebar()">
+          <span class="nav-icon">📋</span>
+          <span class="nav-text">Inventory</span>
+        </a>
+
+        <a
+          routerLink="/admin/customers"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMobileSidebar()">
+          <span class="nav-icon">👥</span>
+          <span class="nav-text">Customers</span>
+        </a>
+
+        <a
+          routerLink="/admin/orders"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMobileSidebar()">
+          <span class="nav-icon">🛒</span>
+          <span class="nav-text">Orders</span>
+          @if (unconfirmedCount > 0) {
+            <span class="badge-unconfirmed" title="{{ unconfirmedCount }} unconfirmed orders">{{ unconfirmedCount }}</span>
+          }
+        </a>
+
+        <a
+          routerLink="/admin/horoscope"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMobileSidebar()">
+          <span class="nav-icon">🔮</span>
+          <span class="nav-text">Daily Horoscope</span>
+        </a>
+
+        <a
+          routerLink="/admin/consultations"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMobileSidebar()">
+          <span class="nav-icon">🪐</span>
+          <span class="nav-text">Consultations &amp; Meet</span>
+        </a>
+
+        <a
+          routerLink="/admin/returns"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMobileSidebar()">
+          <span class="nav-icon">🔄</span>
+          <span class="nav-text">Return &amp; Refund</span>
+        </a>
+
+        <!-- Reports Group with Accordion Submenu -->
+        <div class="sidebar-nav-group" [class.group-open]="reportsMenuOpen">
+          <button
+            type="button"
+            class="sidebar-group-toggle"
+            (click)="toggleReportsMenu()"
+            [attr.aria-expanded]="reportsMenuOpen">
+            <span class="nav-icon">📖</span>
+            <span class="nav-text">Reports</span>
+            <span class="group-chevron">{{ reportsMenuOpen ? '▾' : '▸' }}</span>
+          </button>
+
+          @if (reportsMenuOpen) {
+            <div class="sidebar-sub-menu">
+              <a
+                routerLink="/admin/reports/sales"
+                routerLinkActive="active"
+                [routerLinkActiveOptions]="{ exact: true }"
+                (click)="closeMobileSidebar()"
+                class="sub-nav-item">
+                <span class="sub-dot"></span>
+                <span class="nav-text">Sales Report</span>
+              </a>
+
+              <a
+                routerLink="/admin/reports/date-wise"
+                routerLinkActive="active"
+                [routerLinkActiveOptions]="{ exact: true }"
+                (click)="closeMobileSidebar()"
+                class="sub-nav-item">
+                <span class="sub-dot"></span>
+                <span class="nav-text">Date-wise Reports</span>
+              </a>
+
+              <a
+                routerLink="/admin/products"
+                (click)="closeMobileSidebar()"
+                class="sub-nav-item">
+                <span class="sub-dot"></span>
+                <span class="nav-text">Product Report</span>
+              </a>
+
+              <a
+                routerLink="/admin/customers"
+                (click)="closeMobileSidebar()"
+                class="sub-nav-item">
+                <span class="sub-dot"></span>
+                <span class="nav-text">Customer Report</span>
+              </a>
+
+              <a
+                routerLink="/admin/orders"
+                [queryParams]="{ status: 'cancelled' }"
+                (click)="closeMobileSidebar()"
+                class="sub-nav-item">
+                <span class="sub-dot"></span>
+                <span class="nav-text">Cancelled Orders</span>
+              </a>
+            </div>
+          }
+        </div>
+
+        <a
+          routerLink="/admin/reviews"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMobileSidebar()">
+          <span class="nav-icon">★</span>
+          <span class="nav-text">Reviews &amp; Ratings</span>
+        </a>
+
+        <a
+          routerLink="/admin/notifications"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMobileSidebar()">
+          <span class="nav-icon">✉</span>
+          <span class="nav-text">Notifications</span>
+        </a>
+
+        <a
+          routerLink="/admin/store-settings"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMobileSidebar()">
+          <span class="nav-icon">⚙️</span>
+          <span class="nav-text">Store Settings</span>
+        </a>
+      </nav>
+
+      <!-- Sidebar Space Artwork (Glowing Saturn with Rings) -->
+      <div class="sidebar-cosmic-art" aria-hidden="true">
+        <div class="sidebar-saturn">
+          <div class="sidebar-planet"></div>
+          <div class="sidebar-ring-back"></div>
+          <div class="sidebar-ring-front"></div>
+        </div>
+      </div>
+
+      <!-- Sidebar Footer (View Store, Sound Toggle + Logout) -->
+      <div class="sidebar-footer">
+        <button
+          type="button"
+          class="sidebar-sound-btn"
+          (click)="toggleSound()"
+          [title]="soundEnabled ? 'Order notification chime enabled' : 'Order notification chime muted'">
+          <span>{{ soundEnabled ? '🔊 Sound ON' : '🔇 Muted' }}</span>
+        </button>
+
+        <a class="sidebar-store-link" routerLink="/" (click)="closeMobileSidebar()">
+          <span class="store-link-label">
+            <span class="store-icon">🏪</span> View Store
+          </span>
+          <span class="store-arrow">→</span>
+        </a>
+
+        <button
+          type="button"
+          class="sidebar-logout-btn"
+          (click)="logout()"
+          title="Log out of admin session">
+          <span class="logout-icon">🚪</span>
+          <span class="logout-label">Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="admin-content-outlet">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <!-- Real-Time Order Arrival Toast Popup -->
+  @if (liveAlert) {
+    <div class="live-order-toast" role="alert" aria-live="assertive">
+      <div class="toast-bell">🔔</div>
+      <div class="toast-details">
+        <strong>New Customer Order Placed!</strong>
+        <p>Order #{{ liveAlert.orderNumber }} · ₹{{ liveAlert.total | number:'1.2-2' }} from {{ liveAlert.customerName }}</p>
+      </div>
+      <div class="toast-btn-group">
+        <button type="button" class="btn-toast-view" (click)="viewLiveOrder()">
+          View Orders
+        </button>
+        <button type="button" class="btn-toast-dismiss" (click)="dismissLiveAlert()" title="Dismiss alert">
+          ✕
+        </button>
+      </div>
+    </div>
+  }
+</section>
+

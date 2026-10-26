@@ -1,0 +1,269 @@
+<main class="customers-page">
+  <header class="customers-header">
+    <div>
+      <p>ASTROLOGY STORE</p>
+      <h1>Customer Management</h1>
+
+    </div>
+  </header>
+
+  @if (errorMessage) {
+  <p class="customer-message error" role="alert">{{ errorMessage }}</p>
+  }
+
+  <!-- View 1: When a single customer is selected (shows ONLY that selected customer's details and purchase information) -->
+  @if (selectedCustomer) {
+  <section class="single-customer-view">
+    <div class="view-navigation-bar">
+      <button type="button" class="back-to-list-btn" (click)="clearSelectedCustomer()">
+        ← Back to Customer List
+      </button>
+    </div>
+
+    <div class="selected-customer-card">
+      <div class="customer-profile-header">
+        <div class="profile-avatar-row">
+          <span class="customer-avatar" aria-hidden="true">
+            {{ (selectedCustomer.name || selectedCustomer.email || 'C').charAt(0).toUpperCase() }}
+          </span>
+          <div class="profile-title-block">
+            <h2>{{ selectedCustomer.name || 'Customer' }}</h2>
+            <span class="profile-email">{{ displayCustomerEmail(selectedCustomer.email, selectedCustomer.mobile)
+              }}</span>
+          </div>
+        </div>
+
+        <div class="profile-status-block">
+          <span class="account-status"
+            [class.inactive]="selectedCustomer.active === false || selectedCustomer.accountStatus === 'inactive'">
+            {{ selectedCustomer.active === false || selectedCustomer.accountStatus === 'inactive' ? 'Inactive' :
+            'Active' }}
+          </span>
+          @if (selectedCustomer.role === 'customer' || !selectedCustomer.role) {
+          <button type="button" class="account-button"
+            [class.deactivate]="selectedCustomer.active !== false && selectedCustomer.accountStatus !== 'inactive'"
+            (click)="toggleAccount(selectedCustomer)">
+            {{ selectedCustomer.active === false || selectedCustomer.accountStatus === 'inactive' ? 'Reactivate account'
+            : 'Deactivate account' }}
+          </button>
+          }
+        </div>
+      </div>
+
+      <div class="customer-info-grid">
+        <div class="info-item">
+          <span class="info-label">Full Name</span>
+          <strong class="info-val">{{ selectedCustomer.name || 'N/A' }}</strong>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Email</span>
+          <strong class="info-val">{{ selectedCustomer.email || 'N/A' }}</strong>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Phone / Mobile</span>
+          <strong class="info-val">{{ selectedCustomer.mobile || 'Not provided' }}</strong>
+        </div>
+        <div class="info-item full-width">
+          <span class="info-label">Address</span>
+          <strong class="info-val">{{ selectedCustomer.address || 'Address not provided' }}</strong>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Total Orders</span>
+          <strong class="info-val">{{ selectedCustomer.orders.length }} {{ selectedCustomer.orders.length === 1 ?
+            'order' : 'orders' }}</strong>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Total Spent</span>
+          <strong class="info-val total-spent-val">₹{{ getCustomerTotalSpent(selectedCustomer) }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selected Customer's Purchase History -->
+    <div class="customer-orders-block">
+      <div class="section-title-row">
+        <h3>Customer Purchase History</h3>
+        <span class="order-count-badge">
+          {{ selectedCustomer.orders.length }} {{ selectedCustomer.orders.length === 1 ? 'Order' : 'Orders' }}
+        </span>
+      </div>
+
+      @if (selectedCustomer.orders.length > 0) {
+      <div class="customer-purchases-container">
+        @for (order of getCustomerOrders(selectedCustomer); track order.id || order._id || $index) {
+        <article class="customer-order-card">
+          <div class="order-card-header">
+            <div class="order-meta-item">
+              <span class="meta-label">Order No:</span>
+              <strong class="meta-value order-no-value">#{{ order.orderNumber || order.id }}</strong>
+            </div>
+
+            <div class="order-meta-item">
+              <span class="meta-label">Payment Type:</span>
+              <span class="meta-value payment-type-badge">{{ order.paymentMethod || 'Online' }}</span>
+            </div>
+
+            <div class="order-meta-item">
+              <span class="meta-label">Status:</span>
+              <span class="order-status-badge">{{ order.orderStatus || 'Order Placed' }}</span>
+            </div>
+
+            @if (order.orderDate) {
+            <small class="order-date-text">{{ order.orderDate | date:'medium' }}</small>
+            }
+          </div>
+
+          @if (order.courierName || order.trackingId) {
+          <div class="order-shipment-banner">
+            <span class="shipment-icon">🚚</span>
+            <span class="shipment-detail">Courier: <strong>{{ order.courierName }}</strong></span>
+            <span class="shipment-detail">Tracking ID: <strong class="tracking-code">{{ order.trackingId
+                }}</strong></span>
+          </div>
+          }
+
+          <div class="order-products-section">
+            <table class="order-products-table">
+              <thead>
+                <tr>
+                  <th class="th-img">Image</th>
+                  <th class="th-name">Product Name</th>
+                  <th class="th-id">Product ID</th>
+                  <th class="th-qty">Quantity</th>
+                  <th class="th-price">Price</th>
+                  <th class="th-total">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of order.items ?? []; track $index) {
+                <tr class="purchase-product-row">
+                  <td class="td-img">
+                    @if (item.image) {
+                    <img [src]="item.image" [alt]="item.name || 'Product Image'" class="cust-prod-thumb" />
+                    } @else {
+                    <span class="no-img-thumb" aria-hidden="true">📦</span>
+                    }
+                  </td>
+                  <td class="product-name-col">
+                    <strong>{{ item.name || item.product?.name || 'Product' }}</strong>
+                  </td>
+                  <td class="product-id-col">
+                    <span class="prod-id-code" [title]="item.productId || ''">{{ formatProductId(item.productId) }}</span>
+                  </td>
+                  <td class="product-qty-col">
+                    <span class="mobile-table-label">Qty: </span>
+                    <span class="quantity-badge">{{ item.quantity || 1 }}</span>
+                  </td>
+                  <td class="product-price-col">
+                    <span class="mobile-table-label">Price: </span>
+                    <span>₹{{ item.price ?? item.product?.price ?? 0 }}</span>
+                  </td>
+                  <td class="product-total-col">
+                    <span class="mobile-table-label">Total: </span>
+                    <span>₹{{ (item.price ?? item.product?.price ?? 0) * (item.quantity || 1) }}</span>
+                  </td>
+                </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <div class="order-card-footer">
+            <span>Total Amount: <strong>₹{{ order.total || 0 }}</strong></span>
+            <span>Payment Status: <strong class="payment-status-text">{{ order.paymentStatus || 'Pending'
+                }}</strong></span>
+          </div>
+        </article>
+        }
+      </div>
+      } @else {
+      <div class="no-purchases-card">
+        <p class="no-purchases-msg">No purchase history found for this customer.</p>
+      </div>
+      }
+    </div>
+  </section>
+  } @else {
+  <!-- View 2: Customer List in Table Format -->
+  <section class="customers-panel">
+    <div class="customers-toolbar">
+      <div>
+        <h2>Customers <span>({{ filteredCustomers.length }})</span></h2>
+        <p>Click on any customer to view their detailed profile and purchase information.</p>
+      </div>
+      <label class="customer-search">
+        <span>Search customers</span>
+        <input type="search" name="customerSearch" [(ngModel)]="searchText" placeholder="Name, email, phone or address">
+      </label>
+    </div>
+
+    @if (isLoading) {
+    <div class="empty-customers">
+      <h3>Loading customers...</h3>
+      <p>Fetching registered customer directory from database.</p>
+    </div>
+    } @else if (filteredCustomers.length > 0) {
+    <div class="customer-table-container">
+      <div class="table-responsive">
+        <table class="customer-table" aria-label="Customer directory">
+          <thead>
+            <tr>
+              <th class="th-name">Name</th>
+              <th class="th-email">Email</th>
+              <th class="th-phone">Phone</th>
+              <th class="th-address">Address</th>
+              <th class="th-orders">Orders</th>
+              <th class="th-status">Status</th>
+              <th class="th-action">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (customer of filteredCustomers; track customer._id || customer.email || customer.name || $index) {
+            <tr class="customer-tr" (click)="selectCustomer(customer)">
+              <td class="td-name">
+                <div class="customer-name-cell">
+                  <span class="customer-mini-avatar" aria-hidden="true">
+                    {{ (customer.name || customer.email || 'C').charAt(0).toUpperCase() }}
+                  </span>
+                  <strong>{{ customer.name || 'Customer' }}</strong>
+                </div>
+              </td>
+              <td class="td-email">
+                {{ displayCustomerEmail(customer.email, customer.mobile) }}
+              </td>
+              <td class="td-phone">
+                {{ customer.mobile || '—' }}
+              </td>
+              <td class="td-address">
+                <span class="address-text" [title]="customer.address">{{ customer.address || 'Address not provided'
+                  }}</span>
+              </td>
+              <td class="td-orders">
+                <span class="orders-count-badge">{{ customer.orders.length }}</span>
+              </td>
+              <td class="td-status">
+                <span class="account-status-pill"
+                  [class.inactive]="customer.active === false || customer.accountStatus === 'inactive'">
+                  {{ customer.active === false || customer.accountStatus === 'inactive' ? 'Inactive' : 'Active' }}
+                </span>
+              </td>
+              <td class="td-action" (click)="$event.stopPropagation()">
+                <button type="button" class="view-customer-btn" (click)="selectCustomer(customer)">
+                  View Details
+                </button>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    } @else {
+    <div class="empty-customers">
+      <h3>{{ searchText ? 'No customers match your search' : 'No customers yet' }}</h3>
+      <p>Registered accounts and order customers will appear here.</p>
+    </div>
+    }
+  </section>
+  }
+</main>

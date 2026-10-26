@@ -1,0 +1,373 @@
+<div class="horoscope-cms">
+  <!-- Page Header -->
+  <header class="cms-header">
+    <div class="header-titles">
+      <div class="sacred-tag">
+        <span>♈</span> VEDIC CMS · दैनिक राशिफल <span>✦</span>
+      </div>
+      <h1>Daily Horoscope Management</h1>
+      <p class="subtitle">Publish and manage daily cosmic readings, love, career, and financial predictions for all 12 zodiac signs.</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn-gold" (click)="openCreateModal()">
+        <span>✦</span> Add Daily Reading
+      </button>
+    </div>
+  </header>
+
+  <!-- Notification Alerts -->
+  @if (successMessage) {
+    <div class="alert alert-success" role="alert">
+      <span>✓</span> {{ successMessage }}
+    </div>
+  }
+  @if (errorMessage) {
+    <div class="alert alert-danger" role="alert">
+      <span>⚠</span> {{ errorMessage }}
+    </div>
+  }
+
+  <!-- Filter Toolbar -->
+  <section class="filter-toolbar">
+    <div class="quick-dates">
+      <button type="button" class="btn-chip" [class.active]="selectedDate === getTodayDateString()" (click)="setToday()">
+        Today ({{ getTodayDateString() }})
+      </button>
+      <button type="button" class="btn-chip" (click)="setTomorrow()">
+        Tomorrow
+      </button>
+    </div>
+
+    <div class="filter-controls">
+      <div class="control-group">
+        <label for="date-select">Filter Date</label>
+        <input
+          id="date-select"
+          type="date"
+          [(ngModel)]="selectedDate"
+          (change)="loadHoroscopes()"
+          class="form-control-dark">
+      </div>
+
+      <div class="control-group">
+        <label for="sign-select">Zodiac Sign</label>
+        <select
+          id="sign-select"
+          [(ngModel)]="selectedSign"
+          (change)="loadHoroscopes()"
+          class="form-control-dark">
+          <option value="">All 12 Signs</option>
+          @for (s of zodiacSigns; track s.sign) {
+            <option [value]="s.sign">{{ s.symbol }} {{ s.sign }} ({{ s.dates }})</option>
+          }
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="status-select">Status</label>
+        <select
+          id="status-select"
+          [(ngModel)]="selectedStatus"
+          (change)="loadHoroscopes()"
+          class="form-control-dark">
+          <option value="">All Statuses</option>
+          <option value="Published">Published</option>
+          <option value="Draft">Draft</option>
+        </select>
+      </div>
+
+      <button type="button" class="btn-outline-gold" (click)="loadHoroscopes()" title="Refresh records">
+        🔄 Refresh
+      </button>
+    </div>
+  </section>
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="cosmic-spinner"></div>
+      <p>Reading celestial alignments...</p>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading && horoscopes.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">🔮</div>
+      <h3>No Horoscopes Found</h3>
+      <p>No horoscopes published yet for the selected date ({{ selectedDate || 'All dates' }}). Click below to create today's readings.</p>
+      <button type="button" class="btn-gold" (click)="openCreateModal()">
+        <span>✦</span> Create Reading for {{ selectedDate || 'Today' }}
+      </button>
+    </div>
+  }
+
+  <!-- Horoscopes Grid -->
+  @if (!isLoading && horoscopes.length > 0) {
+    <section class="horoscopes-grid">
+      @for (item of horoscopes; track item.id) {
+        <article class="horoscope-card">
+          <div class="card-top">
+            <div class="sign-meta">
+              <span class="sign-symbol">{{ item.zodiacSign === 'Aries' ? '♈' : item.zodiacSign === 'Taurus' ? '♉' : item.zodiacSign === 'Gemini' ? '♊' : item.zodiacSign === 'Cancer' ? '♋' : item.zodiacSign === 'Leo' ? '♌' : item.zodiacSign === 'Virgo' ? '♍' : item.zodiacSign === 'Libra' ? '♎' : item.zodiacSign === 'Scorpio' ? '♏' : item.zodiacSign === 'Sagittarius' ? '♐' : item.zodiacSign === 'Capricorn' ? '♑' : item.zodiacSign === 'Aquarius' ? '♒' : '♓' }}</span>
+              <div>
+                <h3>{{ item.zodiacSign }}</h3>
+                <span class="date-badge">{{ item.horoscopeDate | date:'mediumDate' }}</span>
+              </div>
+            </div>
+            <span class="status-badge" [class.published]="item.status === 'Published'" [class.draft]="item.status === 'Draft'">
+              {{ item.status }}
+            </span>
+          </div>
+
+          <div class="card-body">
+            <p class="prediction-text">{{ item.prediction }}</p>
+
+            <div class="pills-row">
+              @if (item.love) { <span class="category-pill">❤️ Love</span> }
+              @if (item.career) { <span class="category-pill">💼 Career</span> }
+              @if (item.finance) { <span class="category-pill">💰 Finance</span> }
+              @if (item.health) { <span class="category-pill">🌿 Health</span> }
+            </div>
+
+            <div class="lucky-attributes">
+              @if (item.luckyNumber) {
+                <div class="attr-item">
+                  <small>Lucky No:</small>
+                  <strong>{{ item.luckyNumber }}</strong>
+                </div>
+              }
+              @if (item.luckyColor) {
+                <div class="attr-item">
+                  <small>Lucky Color:</small>
+                  <strong>{{ item.luckyColor }}</strong>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <button type="button" class="btn-link-action" (click)="openPreview(item)">
+              👁️ Preview
+            </button>
+            <button type="button" class="btn-link-action" (click)="openEditModal(item)">
+              ✏️ Edit
+            </button>
+            <button
+              type="button"
+              class="btn-link-action"
+              [class.unpublish]="item.status === 'Published'"
+              (click)="toggleStatus(item)">
+              {{ item.status === 'Published' ? 'Unpublish' : 'Publish' }}
+            </button>
+            <button type="button" class="btn-link-danger" (click)="deleteHoroscope(item)">
+              🗑️
+            </button>
+          </div>
+        </article>
+      }
+    </section>
+  }
+
+  <!-- Add/Edit Modal -->
+  @if (showEditModal) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-card modal-large" (click)="$event.stopPropagation()">
+        <header class="modal-header">
+          <h2>{{ modalMode === 'create' ? 'Add Daily Horoscope Reading' : 'Edit Horoscope Reading' }}</h2>
+          <button type="button" class="btn-close" (click)="closeModal()">✕</button>
+        </header>
+
+        <form class="modal-body" (ngSubmit)="saveHoroscope()">
+          <div class="form-row">
+            <div class="form-group col">
+              <label for="form-date">Date <span class="req">*</span></label>
+              <input
+                id="form-date"
+                type="date"
+                [(ngModel)]="currentForm.horoscopeDate"
+                name="horoscopeDate"
+                required
+                class="form-control-dark">
+            </div>
+
+            <div class="form-group col">
+              <label for="form-sign">Zodiac Sign <span class="req">*</span></label>
+              <select
+                id="form-sign"
+                [(ngModel)]="currentForm.zodiacSign"
+                name="zodiacSign"
+                required
+                class="form-control-dark">
+                @for (s of zodiacSigns; track s.sign) {
+                  <option [value]="s.sign">{{ s.symbol }} {{ s.sign }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-group col">
+              <label for="form-status">Status</label>
+              <select
+                id="form-status"
+                [(ngModel)]="currentForm.status"
+                name="status"
+                class="form-control-dark">
+                <option value="Published">Published</option>
+                <option value="Draft">Draft</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="form-prediction">General Cosmic Overview <span class="req">*</span></label>
+            <textarea
+              id="form-prediction"
+              [(ngModel)]="currentForm.prediction"
+              name="prediction"
+              rows="3"
+              required
+              placeholder="Overview of today's planetary influence for this sign..."
+              class="form-control-dark"></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col">
+              <label for="form-love">Love &amp; Relationships</label>
+              <textarea
+                id="form-love"
+                [(ngModel)]="currentForm.love"
+                name="love"
+                rows="2"
+                placeholder="Romantic prospects and emotional harmony..."
+                class="form-control-dark"></textarea>
+            </div>
+            <div class="form-group col">
+              <label for="form-career">Career &amp; Work</label>
+              <textarea
+                id="form-career"
+                [(ngModel)]="currentForm.career"
+                name="career"
+                rows="2"
+                placeholder="Professional growth, business, and leadership..."
+                class="form-control-dark"></textarea>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col">
+              <label for="form-finance">Finance &amp; Wealth</label>
+              <textarea
+                id="form-finance"
+                [(ngModel)]="currentForm.finance"
+                name="finance"
+                rows="2"
+                placeholder="Financial decisions, savings, and investments..."
+                class="form-control-dark"></textarea>
+            </div>
+            <div class="form-group col">
+              <label for="form-health">Health &amp; Wellness</label>
+              <textarea
+                id="form-health"
+                [(ngModel)]="currentForm.health"
+                name="health"
+                rows="2"
+                placeholder="Vitality, nutrition, and mental peace..."
+                class="form-control-dark"></textarea>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col">
+              <label for="form-lucky-no">Lucky Number</label>
+              <input
+                id="form-lucky-no"
+                type="text"
+                [(ngModel)]="currentForm.luckyNumber"
+                name="luckyNumber"
+                placeholder="e.g. 7"
+                class="form-control-dark">
+            </div>
+            <div class="form-group col">
+              <label for="form-lucky-color">Lucky Color</label>
+              <input
+                id="form-lucky-color"
+                type="text"
+                [(ngModel)]="currentForm.luckyColor"
+                name="luckyColor"
+                placeholder="e.g. Royal Gold"
+                class="form-control-dark">
+            </div>
+          </div>
+
+          <footer class="modal-footer">
+            <button type="button" class="btn-cancel" (click)="closeModal()">Cancel</button>
+            <button type="submit" class="btn-gold" [disabled]="isSaving">
+              {{ isSaving ? 'Saving...' : 'Save Reading' }}
+            </button>
+          </footer>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Preview Modal -->
+  @if (showPreviewModal && previewItem) {
+    <div class="modal-backdrop" (click)="closePreview()">
+      <div class="modal-card preview-card" (click)="$event.stopPropagation()">
+        <header class="modal-header">
+          <div class="preview-sign-title">
+            <span class="preview-symbol">{{ previewItem.zodiacSign === 'Aries' ? '♈' : previewItem.zodiacSign === 'Taurus' ? '♉' : previewItem.zodiacSign === 'Gemini' ? '♊' : previewItem.zodiacSign === 'Cancer' ? '♋' : previewItem.zodiacSign === 'Leo' ? '♌' : previewItem.zodiacSign === 'Virgo' ? '♍' : previewItem.zodiacSign === 'Libra' ? '♎' : previewItem.zodiacSign === 'Scorpio' ? '♏' : previewItem.zodiacSign === 'Sagittarius' ? '♐' : itemSign(previewItem.zodiacSign) }}</span>
+            <div>
+              <h2>{{ previewItem.zodiacSign }} Daily Horoscope</h2>
+              <p class="preview-date">{{ previewItem.horoscopeDate | date:'fullDate' }}</p>
+            </div>
+          </div>
+          <button type="button" class="btn-close" (click)="closePreview()">✕</button>
+        </header>
+
+        <div class="modal-body preview-body">
+          <div class="preview-overview">
+            <p>{{ previewItem.prediction }}</p>
+          </div>
+
+          <div class="preview-aspects-grid">
+            @if (previewItem.love) {
+              <div class="aspect-box">
+                <h4>❤️ Love &amp; Romance</h4>
+                <p>{{ previewItem.love }}</p>
+              </div>
+            }
+            @if (previewItem.career) {
+              <div class="aspect-box">
+                <h4>💼 Career &amp; Ambition</h4>
+                <p>{{ previewItem.career }}</p>
+              </div>
+            }
+            @if (previewItem.finance) {
+              <div class="aspect-box">
+                <h4>💰 Money &amp; Finance</h4>
+                <p>{{ previewItem.finance }}</p>
+              </div>
+            }
+            @if (previewItem.health) {
+              <div class="aspect-box">
+                <h4>🌿 Vitality &amp; Health</h4>
+                <p>{{ previewItem.health }}</p>
+              </div>
+            }
+          </div>
+
+          <div class="preview-lucky-bar">
+            <span><strong>Lucky Number:</strong> {{ previewItem.luckyNumber || 'N/A' }}</span>
+            <span class="divider">·</span>
+            <span><strong>Lucky Color:</strong> {{ previewItem.luckyColor || 'N/A' }}</span>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="btn-gold" (click)="closePreview()">Close Preview</button>
+        </footer>
+      </div>
+    </div>
+  }
+</div>

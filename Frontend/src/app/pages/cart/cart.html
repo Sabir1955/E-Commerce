@@ -1,0 +1,154 @@
+<section class="page-title">
+  <div class="sacred-badge">
+    <span class="zodiac-symbol">✦</span>
+    <span>SACRED SANCTUARY BASKET · पूजन पात्र</span>
+    <span class="zodiac-symbol">✦</span>
+  </div>
+  <h1>Shopping Cart</h1>
+  <p>Review your selected astrological treasures and proceed to consecration checkout.</p>
+  <p class="sanskrit-subtext">ॐ श्रीं ह्रीं क्लीं · Divine Abundance &amp; Grace</p>
+</section>
+
+<section class="cart-section">
+
+  @if (items.length > 0) {
+
+    <div class="cart-layout">
+
+      <div class="cart-items">
+
+        @for (item of items; track item.product.id) {
+
+          <div class="cart-item">
+
+            <img
+              [src]="item.product.image"
+              [alt]="item.product.name">
+
+            <div class="item-info">
+
+              <h3>
+                {{ item.product.name }}
+              </h3>
+
+              <p>
+                ₹{{ item.product.price }}
+              </p>
+
+              <small class="stock-note">
+              @if (!item.product.available || item.product.stock === 0) {
+                Currently unavailable
+              } @else {
+                {{ item.product.stock }} in stock
+              }
+              </small>
+
+              <div class="quantity">
+
+                <button
+                  (click)="decrease(item.product.id)">
+                  -
+                </button>
+
+                <span>
+                  {{ item.quantity }}
+                </span>
+
+                <button
+                  [disabled]="!canIncrease(item.product.id)"
+                  (click)="increase(item.product.id)">
+                  +
+                </button>
+
+              </div>
+
+            </div>
+
+            <strong>
+              ₹{{ item.product.price * item.quantity }}
+            </strong>
+
+            <button
+              class="remove"
+              (click)="remove(item.product.id)">
+
+              Remove
+
+            </button>
+
+          </div>
+
+        }
+
+      </div>
+
+      <div class="summary">
+
+        <h2>Order Summary</h2>
+
+        <div>
+          <span>Subtotal</span>
+
+          <strong>
+            ₹{{ cartService.getSubtotal() }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Shipping</span>
+          <strong>Free</strong>
+        </div>
+
+        <hr>
+
+        <div class="total">
+          <span>Total</span>
+
+          <strong>
+            ₹{{ cartService.getSubtotal() }}
+          </strong>
+        </div>
+
+        @if (hasUnavailableItems) {
+          <p class="stock-warning">Some items are no longer available in the selected quantity. Update your cart before checkout.</p>
+        }
+
+        @if (hasUnavailableItems) {
+          <span class="checkout-btn checkout-disabled" aria-disabled="true">
+            Update cart to checkout
+          </span>
+        } @else {
+          <a [routerLink]="['/checkout']" class="checkout-btn">
+            Proceed to Checkout
+          </a>
+        }
+
+      </div>
+
+    </div>
+
+  } @else {
+
+    <div class="empty-cart">
+
+      <div>🛒</div>
+
+      <h2>Your cart is empty</h2>
+
+      <p>
+        Add some astrology products to continue.
+      </p>
+
+      <a
+        routerLink="/products"
+        class="primary-btn">
+
+        Start Shopping
+
+      </a>
+
+    </div>
+
+  }
+
+</section>

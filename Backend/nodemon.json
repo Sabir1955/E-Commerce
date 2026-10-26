@@ -1,0 +1,5 @@
+{
+  "watch": ["src/"],
+  "ignore": ["src/scripts/*", "*.log", "*.test.js"],
+  "delay": 1000
+}

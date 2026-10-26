@@ -1,0 +1,117 @@
+@if (product) {
+  <main class="product-details-container">
+    <div class="product-details-card">
+      <!-- 1. Product Image -->
+      <div class="image-section">
+        <img
+          [src]="product.image"
+          [alt]="product.name">
+      </div>
+
+      <!-- Information Section -->
+      <div class="info-section">
+        <!-- 2. Product Name -->
+        <h1 class="product-name">{{ product.name }}</h1>
+
+        <!-- 3. Price -->
+        <div class="product-price">₹{{ product.price }}</div>
+
+        @if (product.rating) {
+          <div class="product-rating-box" style="display: flex; align-items: center; gap: 6px; margin: 4px 0 16px;">
+            <span class="stars" style="color: #b99a45; font-size: 16px;">★</span>
+            <strong style="color: #4a1525; font-size: 15px;">{{ product.rating }} / 5</strong>
+            <span style="color: #6b7280; font-size: 13px;">({{ product.reviewCount || 1 }} verified {{ (product.reviewCount || 1) === 1 ? 'review' : 'reviews' }})</span>
+          </div>
+        }
+
+        <!-- 4. Product Details / Description -->
+        <div class="description-block">
+          <h2 class="description-heading">Product Details</h2>
+          <div class="description-text" [innerHTML]="product.description"></div>
+        </div>
+
+        <div class="availability-status">
+          @if (product.stock > 0 && product.available !== false) {
+            <span class="available-badge">✓ In Stock &amp; Consecrated</span>
+          } @else {
+            <span class="out-badge">⚠️ Currently Out of Stock</span>
+          }
+        </div>
+
+        <div class="sacred-guarantees">
+          <span class="guarantee-pill">✦ Prana Pratishtha Consecrated</span>
+          <span class="guarantee-pill">💎 100% Lab Tested Genuine</span>
+          <span class="guarantee-pill">📦 Tamper-Evident Sacred Packaging</span>
+        </div>
+
+        <!-- 5. Quantity -->
+        <div class="quantity-block">
+          <label for="product-qty-input" class="quantity-label">Quantity</label>
+          <div class="quantity-control-wrapper">
+            <button
+              type="button"
+              class="qty-btn"
+              (click)="decreaseQuantity()"
+              [disabled]="quantity <= 1 || product.stock === 0 || product.available === false"
+              aria-label="Decrease quantity">
+              −
+            </button>
+            <input
+              id="product-qty-input"
+              type="number"
+              min="1"
+              [max]="product.stock || 99"
+              [(ngModel)]="quantity"
+              (change)="onQuantityChange()"
+              [disabled]="product.stock === 0 || product.available === false"
+              aria-label="Quantity value">
+            <button
+              type="button"
+              class="qty-btn"
+              (click)="increaseQuantity()"
+              [disabled]="(product.stock ? quantity >= product.stock : false) || product.stock === 0 || product.available === false"
+              aria-label="Increase quantity">
+              +
+            </button>
+          </div>
+        </div>
+
+        @if (message) {
+          <div class="feedback-msg success" role="status">
+            ✓ {{ message }}
+          </div>
+        }
+
+        @if (errorMessage) {
+          <div class="feedback-msg error" role="alert">
+            {{ errorMessage }}
+          </div>
+        }
+
+        <!-- 6. Add to Cart & 7. Buy Now -->
+        <div class="actions-group">
+          <button
+            type="button"
+            class="action-btn add-to-cart-btn"
+            (click)="addToCart()"
+            [disabled]="product.stock === 0 || product.available === false">
+            {{ product.stock === 0 || product.available === false ? 'Out of Stock' : 'Add to Cart' }}
+          </button>
+
+          <button
+            type="button"
+            class="action-btn buy-now-btn"
+            (click)="buyNow()"
+            [disabled]="product.stock === 0 || product.available === false">
+            Buy Now
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+} @else {
+  <div class="not-found-card">
+    <h2>Product Not Found</h2>
+    <p>The requested product could not be found or is unavailable.</p>
+  </div>
+}

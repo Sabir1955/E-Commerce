@@ -1,0 +1,118 @@
+<section class="auth-page">
+
+  <div class="auth-card">
+
+    <div class="auth-icon">
+      <img src="images/logo.png" alt="Astro Nirvan Logo" class="auth-logo-img">
+    </div>
+
+    <h1>Create Account</h1>
+
+    <p>
+      Join our Astrology Store
+    </p>
+
+    @if (error) {
+
+      <div class="error">
+        {{ error }}
+      </div>
+
+    }
+
+    @if (success) {
+
+      <div class="success">
+        {{ success }}
+      </div>
+
+    }
+
+    <form (ngSubmit)="register()">
+
+      <label>Full Name</label>
+
+      <input
+        type="text"
+        name="name"
+        [(ngModel)]="name"
+        required
+        placeholder="Enter name">
+
+      <label>Email</label>
+
+      <input
+        type="email"
+        name="email"
+        [(ngModel)]="email"
+        required
+        placeholder="Enter email">
+
+      <label>Mobile Number</label>
+
+      <input
+        type="tel"
+        name="mobile"
+        [(ngModel)]="mobile"
+        required
+        placeholder="Enter 10-digit mobile (e.g. 9876543210)">
+
+      <label for="register-password">Password</label>
+      <div class="password-input-wrapper">
+        <input
+          id="register-password"
+          [type]="showPassword ? 'text' : 'password'"
+          name="password"
+          [(ngModel)]="password"
+          required
+          minlength="8"
+          placeholder="Create password (min 8 characters)"
+          autocomplete="new-password">
+        <button
+          type="button"
+          class="password-toggle-btn"
+          (click)="togglePassword()"
+          [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+          [attr.aria-pressed]="showPassword">
+          @if (showPassword) {
+            <!-- Eye Off Icon -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          } @else {
+            <!-- Eye Icon -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          }
+        </button>
+      </div>
+
+      <button
+        type="submit"
+        class="primary-btn"
+        [disabled]="loading">
+        @if (loading) {
+          <span>Creating Account...</span>
+        } @else {
+          <span>Register</span>
+        }
+      </button>
+
+    </form>
+
+    <p class="login-text">
+
+      Already have an account?
+
+      <a [routerLink]="['/login']" [queryParams]="returnUrl ? { returnUrl } : null">
+        Login
+      </a>
+
+    </p>
+
+  </div>
+
+</section>

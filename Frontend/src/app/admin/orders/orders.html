@@ -1,0 +1,482 @@
+<div class="admin-content">
+
+  <div class="admin-header">
+    <div>
+      <p>ASTROLOGY STORE · FULFILLMENT</p>
+      <h1>Order Management</h1>
+    </div>
+    <div class="header-actions">
+      <button
+        type="button"
+        class="live-refresh-btn"
+        (click)="manualRefresh()"
+        [disabled]="isRefreshing || loading"
+        title="Refresh orders from database">
+        <span class="refresh-icon" [class.spinning]="isRefreshing || loading">🔄</span>
+        <span>{{ isRefreshing ? 'Refreshing...' : 'Live Refresh' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div
+      class="stat-card clickable-stat"
+      [class.active-card]="statusFilter === 'ALL'"
+      (click)="setStatusFilter('ALL')"
+      title="View all orders">
+      <span>📦</span>
+      <h3>Total Orders</h3>
+      <strong>{{ countTotal }}</strong>
+    </div>
+
+    <div
+      class="stat-card clickable-stat awaiting-card"
+      [class.active-card]="statusFilter.toLowerCase() === 'awaiting confirmation' || statusFilter.toLowerCase() === 'awaiting_confirmation'"
+      (click)="setStatusFilter('Awaiting Confirmation')"
+      title="Filter by Orders Awaiting Confirmation">
+      <span>⏳</span>
+      <h3>Awaiting Confirmation</h3>
+      <strong>{{ countAwaitingConfirmation }}</strong>
+    </div>
+
+    <div
+      class="stat-card clickable-stat confirmed-card"
+      [class.active-card]="statusFilter.toLowerCase() === 'confirmed & processing' || statusFilter.toLowerCase() === 'confirmed'"
+      (click)="setStatusFilter('Confirmed & Processing')"
+      title="Filter by Confirmed &amp; Processing orders">
+      <span>⚙️</span>
+      <h3>Confirmed &amp; Processing</h3>
+      <strong>{{ countConfirmedProcessing }}</strong>
+    </div>
+
+    <div
+      class="stat-card clickable-stat shipped-card"
+      [class.active-card]="statusFilter.toLowerCase() === 'shipped'"
+      (click)="setStatusFilter('Shipped')"
+      title="Filter by Shipped orders">
+      <span>🚚</span>
+      <h3>Dispatched</h3>
+      <strong>{{ countShipped }}</strong>
+    </div>
+
+    <div
+      class="stat-card clickable-stat completed-card"
+      [class.active-card]="statusFilter.toLowerCase() === 'completed' || statusFilter.toLowerCase() === 'delivered'"
+      (click)="setStatusFilter('Completed')"
+      title="Filter by Delivered orders">
+      <span>✓</span>
+      <h3>Delivered</h3>
+      <strong>{{ countDelivered }}</strong>
+    </div>
+
+    <div
+      class="stat-card clickable-stat cancelled-card"
+      [class.active-card]="statusFilter.toLowerCase() === 'cancelled'"
+      (click)="setStatusFilter('Cancelled')"
+      title="Filter by Cancelled orders">
+      <span>✕</span>
+      <h3>Cancelled</h3>
+      <strong>{{ countCancelled }}</strong>
+    </div>
+
+    <div
+      class="stat-card clickable-stat revenue-card"
+      (click)="setStatusFilter('ALL')"
+      title="Recognized Sales Revenue (Paid orders + Delivered COD)">
+      <span>₹</span>
+      <h3>Actual Revenue</h3>
+      <strong>₹{{ totalRevenue | number:'1.2-2' }}</strong>
+    </div>
+  </div>
+
+  <section class="order-management" id="order-management">
+    <div class="order-management-heading">
+      <div>
+        <p>ORDER PIPELINE</p>
+        <h2>New Order → Confirmation → Processing → Dispatched → Delivered</h2>
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="order-status-tabs" role="tablist" aria-label="Filter orders by status">
+      <button
+        type="button"
+        class="status-tab-btn"
+        [class.active]="statusFilter === 'ALL'"
+        (click)="setStatusFilter('ALL')">
+        All Orders ({{ countTotal }})
+      </button>
+      <button
+        type="button"
+        class="status-tab-btn"
+        [class.active]="statusFilter.toLowerCase() === 'awaiting confirmation' || statusFilter.toLowerCase() === 'awaiting_confirmation'"
+        (click)="setStatusFilter('Awaiting Confirmation')">
+        ⏳ Awaiting Confirmation ({{ countAwaitingConfirmation }})
+      </button>
+      <button
+        type="button"
+        class="status-tab-btn"
+        [class.active]="statusFilter.toLowerCase() === 'confirmed & processing' || statusFilter.toLowerCase() === 'confirmed'"
+        (click)="setStatusFilter('Confirmed & Processing')">
+        ⚙️ Confirmed &amp; Processing ({{ countConfirmedProcessing }})
+      </button>
+      <button
+        type="button"
+        class="status-tab-btn"
+        [class.active]="statusFilter.toLowerCase() === 'shipped'"
+        (click)="setStatusFilter('Shipped')">
+        🚚 Dispatched ({{ countShipped }})
+      </button>
+      <button
+        type="button"
+        class="status-tab-btn"
+        [class.active]="statusFilter.toLowerCase() === 'completed' || statusFilter.toLowerCase() === 'delivered'"
+        (click)="setStatusFilter('Completed')">
+        ✅ Delivered ({{ countDelivered }})
+      </button>
+      <button
+        type="button"
+        class="status-tab-btn"
+        [class.active]="statusFilter.toLowerCase() === 'cancelled'"
+        (click)="setStatusFilter('Cancelled')">
+        ❌ Cancelled ({{ countCancelled }})
+      </button>
+    </div>
+
+    @if (orderList.length > 0) {
+      <label class="order-search">
+        <span>Search orders</span>
+        <input
+          type="search"
+          name="orderSearch"
+          [(ngModel)]="orderSearch"
+          placeholder="Order ID, customer, email, phone, or status">
+      </label>
+
+      @if (filteredOrders.length > 0) {
+      <div class="order-list">
+        @for (order of filteredOrders; track order.id) {
+          <article class="order-row" [class.awaiting-confirmation-row]="order.orderStatus === 'Order Placed'">
+            <div class="order-info">
+              <div class="order-title-line">
+                <strong>#{{ order.id }} — {{ order.customerName }}</strong>
+                @if (order.orderStatus === 'Order Placed') {
+                  <span class="awaiting-pill">✦ Awaiting Confirmation</span>
+                }
+              </div>
+              <span>
+                {{ order.orderDate | date:'mediumDate' }} • ₹{{ order.total | number:'1.2-2' }} •
+                <strong class="payment-method-badge" [class.cod-badge]="(order.paymentMethod || '').toUpperCase() === 'COD'">
+                  {{ order.paymentMethod || 'Online' }}
+                </strong> •
+                <span class="payment-status-tag" [class.pending-tag]="(order.paymentStatus || '').toLowerCase() === 'pending'">
+                  {{ order.paymentStatus || 'Pending' }}
+                </span>
+              </span>
+              <small>
+                {{ order.email || order.mobile || 'No contact specified' }}
+              </small>
+              <button
+                type="button"
+                class="order-details-toggle"
+                (click)="toggleExpand(order.id)">
+                {{ isExpanded(order.id) ? '▲ Hide details' : '▼ View details' }}
+              </button>
+            </div>
+
+            <div class="order-actions-col">
+              @if (order.orderStatus === 'Order Placed') {
+                <div class="quick-confirmation-box">
+                  <button
+                    type="button"
+                    class="btn-confirm-action"
+                    [disabled]="isConfirming[order.id]"
+                    (click)="confirmOrder(order)"
+                    title="Confirm this customer order">
+                    ✓ {{ isConfirming[order.id] ? 'Confirming...' : 'Confirm Order' }}
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-reject-action"
+                    [disabled]="isCancelling[order.id]"
+                    (click)="cancelOrder(order)"
+                    title="Reject/Cancel this order">
+                    ✕ Reject
+                  </button>
+                </div>
+              }
+
+              <label class="status-select-label">
+                <span>Update status:</span>
+                <select
+                  [ngModel]="order.orderStatus"
+                  (ngModelChange)="onStatusChange(order, $event)">
+                  @for (status of orderStatuses; track status) {
+                    <option [value]="status">{{ status }}</option>
+                  }
+                </select>
+              </label>
+            </div>
+
+            @if (shippingFormOrderId === order.id || (order.orderStatus === 'Shipped' && isExpanded(order.id))) {
+              <div class="shipping-entry-form">
+                <div class="shipping-form-title">
+                  <span>🚚 Courier &amp; Tracking Details</span>
+                </div>
+                <div class="shipping-inputs-row">
+                  <div class="ship-input-group">
+                    <label [for]="'courier-' + order.id">
+                      <span class="field-label"><span class="required-star">*</span> Courier / Company Name</span>
+                    </label>
+                    <input
+                      [id]="'courier-' + order.id"
+                      type="text"
+                      [(ngModel)]="shippingCourierName[order.id]"
+                      placeholder="e.g. Blue Dart, Delhivery, DTDC, India Post"
+                      class="courier-input">
+                  </div>
+                  <div class="ship-input-group">
+                    <label [for]="'tracking-' + order.id">
+                      <span class="field-label"><span class="required-star">*</span> Courier / Tracking Order ID</span>
+                    </label>
+                    <input
+                      [id]="'tracking-' + order.id"
+                      type="text"
+                      [(ngModel)]="shippingTrackingId[order.id]"
+                      placeholder="e.g. BLD123456789"
+                      class="tracking-input">
+                  </div>
+                </div>
+                <div class="shipping-form-actions">
+                  <button
+                    type="button"
+                    class="primary-btn save-shipment-btn"
+                    [disabled]="isSavingShipment[order.id]"
+                    (click)="saveShipmentDetails(order)">
+                    {{ isSavingShipment[order.id] ? 'Saving to Database...' : 'Save & Ship Order' }}
+                  </button>
+                  @if (shippingFormOrderId === order.id) {
+                    <button
+                      type="button"
+                      class="cancel-ship-btn"
+                      (click)="cancelShippingForm(order)">
+                      Cancel
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (isExpanded(order.id)) {
+              <div class="order-details-pane">
+                <!-- Action bar with Download / Print Slip Button -->
+                <div class="slip-action-header">
+                  <div class="slip-header-title">
+                    <span class="slip-icon">📋</span>
+                    <strong>Complete Order Information &amp; Slip</strong>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn-print-slip"
+                    (click)="printOrderSlip(order)"
+                    title="Download or Print Slip with store and customer details">
+                    <span class="btn-print-icon">🖨️</span> Download / Print Slip
+                  </button>
+                </div>
+
+                <!-- 1. Customer Details — Show First -->
+                <div class="details-section-card customer-section">
+                  <div class="section-card-title">
+                    <span class="section-icon">👤</span>
+                    <h4>Customer Details</h4>
+                  </div>
+                  <div class="customer-info-grid">
+                    <div class="info-row">
+                      <span class="info-label">Customer Name:</span>
+                      <strong class="info-val customer-name-val">{{ order.customerName }}</strong>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Email:</span>
+                      <span class="info-val">{{ order.email || 'N/A' }}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Phone:</span>
+                      <span class="info-val">{{ order.mobile || 'N/A' }}</span>
+                    </div>
+                    <div class="info-row full-width">
+                      <span class="info-label">Full Address:</span>
+                      <span class="info-val address-val">{{ order.fullAddress }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 2. Product / Order Details — Show Below -->
+                <div class="details-section-card product-order-section">
+                  <div class="section-card-title">
+                    <span class="section-icon">📦</span>
+                    <h4>Product / Order Details</h4>
+                  </div>
+
+                  <!-- Order Status & Payment Meta -->
+                  <div class="order-summary-meta">
+                    <div class="summary-pill">
+                      <span class="pill-label">Order No:</span>
+                      <strong class="pill-val order-num-val">#{{ order.orderNumber || order.id }}</strong>
+                    </div>
+                    <div class="summary-pill">
+                      <span class="pill-label">Payment Method:</span>
+                      <span class="payment-method-badge" [class.cod-badge]="(order.paymentMethod || '').toUpperCase() === 'COD'">
+                        {{ order.paymentMethod || 'Online' }}
+                      </span>
+                    </div>
+                    <div class="summary-pill">
+                      <span class="pill-label">Payment Status:</span>
+                      <span class="payment-status-tag" [class.pending-tag]="(order.paymentStatus || '').toLowerCase() === 'pending'">
+                        {{ order.paymentStatus || 'Pending' }}
+                      </span>
+                    </div>
+                    <div class="summary-pill">
+                      <span class="pill-label">Order Status:</span>
+                      <span class="order-status-pill">{{ order.orderStatus }}</span>
+                    </div>
+                    @if (order.courierName) {
+                      <div class="summary-pill">
+                        <span class="pill-label">Courier:</span>
+                        <strong class="pill-val">{{ order.courierName }}</strong>
+                      </div>
+                    }
+                    @if (order.trackingId) {
+                      <div class="summary-pill">
+                        <span class="pill-label">Tracking ID:</span>
+                        <strong class="pill-val tracking-id-code">{{ order.trackingId }}</strong>
+                      </div>
+                    }
+                    @if (order.confirmedAt) {
+                      <div class="summary-pill confirmation-pill">
+                        <span class="pill-label">Confirmed:</span>
+                        <span class="pill-val">
+                          {{ order.confirmedAt | date:'short' }}
+                          @if (order.confirmedBy?.name) {
+                            by <strong>{{ order.confirmedBy?.name }}</strong>
+                          }
+                        </span>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Purchased Products Table -->
+                  <div class="products-table-container">
+                    <table class="admin-products-table">
+                      <thead>
+                        <tr>
+                          <th class="th-prod-img">Image</th>
+                          <th class="th-prod-name">Product Name</th>
+                          <th class="th-prod-id">Product ID</th>
+                          <th class="th-prod-qty">Quantity</th>
+                          <th class="th-prod-price">Price</th>
+                          <th class="th-prod-total">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (item of order.items ?? []; track $index) {
+                          <tr class="admin-product-row">
+                            <td class="td-prod-img">
+                              <img
+                                [src]="item.image || 'assets/placeholder.png'"
+                                [alt]="item.name"
+                                class="admin-product-thumb">
+                            </td>
+                            <td class="td-prod-name">
+                              <span class="product-title">{{ item.name }}</span>
+                            </td>
+                            <td class="td-prod-id">
+                              <code class="product-id-badge" [title]="item.productId">{{ item.productId }}</code>
+                            </td>
+                            <td class="td-prod-qty">
+                              <span class="mobile-prod-label">Qty: </span>
+                              <span class="quantity-tag">{{ item.quantity }}</span>
+                            </td>
+                            <td class="td-prod-price">
+                              <span class="mobile-prod-label">Price: </span>
+                              ₹{{ item.price }}
+                            </td>
+                            <td class="td-prod-total">
+                              <span class="mobile-prod-label">Total: </span>
+                              <strong>₹{{ item.total }}</strong>
+                            </td>
+                          </tr>
+                        } @empty {
+                          <tr class="empty-items-row">
+                            <td colspan="6" class="empty-items-msg">No products recorded for this order.</td>
+                          </tr>
+                        }
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <td colspan="5" class="tfoot-label">Total Amount:</td>
+                          <td class="tfoot-total">₹{{ order.total }}</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+
+                  @if (order.whatsappOptIn) {
+                    <p class="whatsapp-note">📱 <strong>WhatsApp Updates:</strong> Opted in</p>
+                  }
+
+                  @if (order.orderStatus === 'Delivered') {
+                    <label class="delivered-date-field">
+                      Delivered date (needed for return eligibility)
+                      <input
+                        type="date"
+                        [ngModel]="deliveredDateInput(order.deliveredAt)"
+                        (ngModelChange)="updateDeliveredDate(order.id, $event)"
+                        [name]="'delivered-date-' + order.id">
+                    </label>
+                  }
+                </div>
+
+                <div class="details-section-card store-section">
+                  <div class="section-card-title">
+                    <span class="section-icon">🏬</span>
+                    <h4>Store Address</h4>
+                  </div>
+                  @if (storeAddress) {
+                    <div class="customer-info-grid">
+                      <div class="info-row">
+                        <span class="info-label">Store Name:</span>
+                        <strong class="info-val">{{ storeAddress.storeName }}</strong>
+                      </div>
+                      @if (storeAddress.phone || storeAddress.mobile) {
+                        <div class="info-row">
+                          <span class="info-label">Store Phone:</span>
+                          <span class="info-val">{{ storeAddress.phone || storeAddress.mobile }}</span>
+                        </div>
+                      }
+                      <div class="info-row full-width">
+                        <span class="info-label">Address:</span>
+                        <span class="info-val address-val">
+                          {{ storeAddress.addressLine || storeAddress.address }}<br>
+                          {{ storeAddress.city }}, {{ storeAddress.state }} - {{ storeAddress.pinCode || storeAddress.postalCode }}<br>
+                          {{ storeAddress.country }}
+                        </span>
+                      </div>
+                    </div>
+                  } @else {
+                    <p class="info-val">Store address could not be loaded.</p>
+                  }
+                </div>
+              </div>
+            }
+          </article>
+        }
+      </div>
+      } @else {
+        <p class="empty-orders">No orders match that search.</p>
+      }
+    } @else {
+      <p class="empty-orders">No orders to manage yet.</p>
+    }
+  </section>
+
+</div>

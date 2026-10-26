@@ -1,0 +1,478 @@
+<section class="page-title">
+  <div class="sacred-badge">
+    <span class="zodiac-symbol">✦</span>
+    <span>CONSECRATED ORDER JOURNAL · आदेश इतिहास</span>
+    <span class="zodiac-symbol">✦</span>
+  </div>
+  <h1>Order History</h1>
+  <p>Review your previous purchases, delivery progress and payment status.</p>
+  <p class="sanskrit-subtext">सत्यं वद धर्मं चर · Walk the Path of Righteousness</p>
+</section>
+
+<main class="history-page">
+  <form class="history-search" (ngSubmit)="loadHistory()">
+    <label for="history-email">Email used at checkout</label>
+    <div class="history-search-row">
+      <input id="history-email" type="email" name="email" [(ngModel)]="email" autocomplete="email"
+        placeholder="you@example.com" required>
+      <button class="primary-btn" type="submit">View Orders</button>
+    </div>
+    <p>Your order history is stored on the browser/device used for checkout.</p>
+  </form>
+
+  @if (errorMessage) {
+  <p class="history-message error" role="alert">{{ errorMessage }}</p>
+  }
+
+  @if (searched && !errorMessage && orders.length === 0) {
+  <section class="history-empty">
+    <span aria-hidden="true">📦</span>
+    <h2>No previous orders found</h2>
+    <p>Check the email used at checkout, or browse the store to place an order.</p>
+    <a class="primary-btn" routerLink="/products">Explore Products</a>
+  </section>
+  }
+
+  @if (cancelMessage) {
+  <p class="history-message success" role="status">{{ cancelMessage }}</p>
+  }
+  @if (cancelError) {
+  <p class="history-message error" role="alert">{{ cancelError }}</p>
+  }
+  @if (returnSuccess) {
+  <p class="history-message success" role="status">{{ returnSuccess }}</p>
+  }
+  @if (returnError) {
+  <p class="history-message error" role="alert">{{ returnError }}</p>
+  }
+
+  @if (orders.length > 0) {
+  <section class="orders-list" aria-label="Previous orders">
+    <p class="orders-count">{{ orders.length }} {{ orders.length === 1 ? 'order' : 'orders' }} found</p>
+
+    @for (order of orders; track order.id) {
+    <article class="order-card">
+      <div class="order-card-heading">
+        <div class="order-identification">
+          <span class="eyebrow">Order Number</span>
+          <h2>{{ order.orderNumber || order.id }}</h2>
+          @if (order.orderDate) {
+          <span class="order-date">Placed {{ order.orderDate | date:'mediumDate' }}</span>
+          }
+          @if (order.deliveredAt) {
+          <span class="order-date">Delivered {{ order.deliveredAt | date:'mediumDate' }}</span>
+          }
+        </div>
+        <span class="order-status" [class.cancelled]="order.orderStatus === 'Cancelled'">{{ order.orderStatus }}</span>
+      </div>
+
+      @if (order.orderStatus === 'Shipped' || (order.courierName && order.trackingId)) {
+      <div class="shipment-tracking-box">
+        <div class="shipment-tracking-header">
+          <span class="tracking-icon">🚚</span>
+          <strong>Shipment &amp; Courier Details</strong>
+        </div>
+        <div class="shipment-tracking-content">
+          <div class="tracking-data-row">
+            <span class="tracking-label">Courier / Company Name:</span>
+            <strong class="tracking-val">{{ order.courierName || 'Standard Express Courier' }}</strong>
+          </div>
+          <div class="tracking-data-row">
+            <span class="tracking-label">Courier / Tracking Order ID:</span>
+            <strong class="tracking-val tracking-code-val">{{ order.trackingId || 'Pending' }}</strong>
+          </div>
+        </div>
+      </div>
+      }
+
+      <div class="order-summary">
+        <span>{{ order.items?.length || 0 }} {{ order.items?.length === 1 ? 'product' : 'products' }}</span>
+        @if (order.total !== undefined) {
+        <strong>₹{{ order.total }}</strong>
+        }
+      </div>
+
+      <div class="order-payment">
+        @if (order.paymentMethod) {
+        <span>Payment method: <strong>{{ order.paymentMethod }}</strong></span>
+        }
+        @if (order.paymentStatus) {
+        <span>Payment status: <strong>{{ order.paymentStatus }}</strong></span>
+        }
+      </div>
+
+      <!-- Order Actions: Cancellation (Only available before Confirmed/Processing) -->
+      @if (canCancelOrder(order)) {
+      @if (cancellingOrderId === (order.rawOrderId || '' + order.id)) {
+      <div class="cancellation-prompt">
+        <h4>Cancel Order #{{ order.id }}?</h4>
+        <p>Are you sure you wish to cancel this order? Once confirmed, order status will update to Cancelled and stock
+          will be restored.</p>
+        <label>
+          Reason for cancellation (optional):
+          <input type="text" [(ngModel)]="cancelReason" placeholder="e.g. Ordered by mistake, wrong shipping address"
+            class="cancel-reason-input">
+        </label>
+        <div class="cancellation-actions">
+          <button type="button" class="danger-btn" [disabled]="cancelLoading" (click)="confirmCancelOrder(order)">
+            @if (cancelLoading) {
+            <span>Cancelling...</span>
+            } @else {
+            <span>Yes, Cancel Order</span>
+            }
+          </button>
+          <button type="button" class="secondary-btn" [disabled]="cancelLoading" (click)="closeCancelPrompt()">
+            Keep Order
+          </button>
+        </div>
+      </div>
+      } @else {
+      <div class="order-action-bar">
+        <button type="button" class="cancel-order-btn" (click)="openCancelPrompt(order.rawOrderId || order.id)">
+          Cancel Order
+        </button>
+      </div>
+      }
+      }
+
+      <!-- Order Actions: Return Request Status or Single Order Return Button -->
+      @if (isOrderDelivered(order) && hasActiveReturn(order)) {
+      <div class="active-return-box">
+        <span class="return-status-badge">
+          🔄 Return Request: {{ (getActiveReturn(order)?.status || 'Requested') | uppercase }}
+        </span>
+        <p class="return-status-detail">
+          Return request submitted (Reason: "{{ getActiveReturn(order)?.reason }}").
+          @if (getActiveReturn(order)?.adminNote) {
+          <br><strong>Store note:</strong> {{ getActiveReturn(order)?.adminNote }}
+          }
+        </p>
+      </div>
+      } @else if (isOrderDelivered(order) && canReturnOrder(order)) {
+      <div class="order-action-bar">
+        <button type="button" class="order-return-btn" (click)="openOrderReturnModal(order)">
+          🔄 Return Products
+        </button>
+      </div>
+      }
+
+
+
+      <button class="details-toggle" type="button" [attr.aria-expanded]="isExpanded(order.id)"
+        (click)="toggleOrderDetails(order.id)">
+        {{ isExpanded(order.id) ? 'Hide order details' : 'View order details' }}
+        <span aria-hidden="true">{{ isExpanded(order.id) ? '−' : '+' }}</span>
+      </button>
+
+      @if (isExpanded(order.id)) {
+      <div class="order-details">
+        <h3>Purchased Products</h3>
+        @if (order.items?.length) {
+        @for (item of order.items; track $index) {
+        <div class="product-item-card">
+          <div class="product-row">
+            <div class="product-thumb-box">
+              <img [src]="item.product?.image || 'assets/placeholder.png'" [alt]="item.product?.name || 'Product'"
+                class="product-thumb-img">
+            </div>
+            <div class="product-info-box">
+              <span class="product-name-qty">
+                <strong>{{ item.product?.name || 'Sacred Item' }}</strong>
+                <span class="item-qty">Qty: {{ item.quantity || 1 }}</span>
+              </span>
+              @if (item.product?.price !== undefined) {
+              <span class="item-price-tag">₹{{ item.product.price }} each</span>
+              }
+            </div>
+            <div class="product-total-box">
+              @if (item.product?.price !== undefined) {
+              <strong>₹{{ item.product.price * (item.quantity || 1) }}</strong>
+              }
+            </div>
+          </div>
+
+          <!-- Rate & Review Section for Delivered Orders -->
+          @if (isOrderDelivered(order) && (item.productId || item.product?._id)) {
+          @if (getReviewForProduct(item.productId || item.product?._id); as existingReview) {
+          <div class="reviewed-display-card">
+            <div class="reviewed-card-header">
+              <span class="reviewed-pill">✓ Reviewed</span>
+              <div class="stars-row">
+                @for (s of [1, 2, 3, 4, 5]; track s) {
+                <span class="star-icon">{{ s <= existingReview.rating ? '★' : '☆' }}</span>
+                    }
+                    <span class="rating-number">({{ existingReview.rating }}/5)</span>
+              </div>
+            </div>
+            @if (existingReview.comment) {
+            <p class="reviewed-quote">"{{ existingReview.comment }}"</p>
+            }
+            <div class="reviewed-meta-row">
+              <span class="reviewed-date">Reviewed on {{ existingReview.createdAt | date:'mediumDate' }}</span>
+              <span class="status-indicator {{ existingReview.status }}">
+                {{ existingReview.status === 'approved' ? 'Live on Store' : existingReview.status }}
+              </span>
+            </div>
+          </div>
+          } @else {
+          @if (isReviewFormOpen(order, item)) {
+          <form class="order-review-form" (ngSubmit)="submitProductReview(order, item)">
+            <div class="form-title-row">
+              <h4>Rate &amp; Review: {{ item.product?.name || 'Item' }}</h4>
+              <button type="button" class="close-form-btn" (click)="closeReviewForm()"
+                aria-label="Close form">✕</button>
+            </div>
+
+            <div class="star-picker-container">
+              <label class="star-picker-label">Your Sacred Rating:</label>
+              <div class="star-rating-buttons">
+                @for (star of [1, 2, 3, 4, 5]; track star) {
+                <button type="button" class="star-btn" [class.active]="star <= reviewRating"
+                  (click)="reviewRating = star" [attr.aria-label]="star + ' stars'">
+                  ★
+                </button>
+                }
+                <span class="rating-score-text">{{ reviewRating }} / 5 Stars</span>
+              </div>
+            </div>
+
+            <label class="review-textarea-label">
+              <span>Your Spiritual Experience &amp; Review</span>
+              <textarea [(ngModel)]="reviewComment" name="reviewComment_{{ order.id }}_{{ $index }}" rows="3"
+                minlength="5" maxlength="2000"
+                placeholder="Describe the consecration, quality, packaging, and spiritual vibration..."
+                required></textarea>
+            </label>
+
+            @if (reviewSuccessMsg && isReviewFormOpen(order, item)) {
+            <p class="review-alert success">{{ reviewSuccessMsg }}</p>
+            }
+            @if (reviewErrorMsg && isReviewFormOpen(order, item)) {
+            <p class="review-alert error">{{ reviewErrorMsg }}</p>
+            }
+
+            <div class="order-review-form-actions">
+              <button type="submit" class="primary-btn submit-rev-btn" [disabled]="reviewSubmitting">
+                {{ reviewSubmitting ? 'Saving to Database...' : 'Submit Review ✦' }}
+              </button>
+              <button type="button" class="cancel-rev-btn" (click)="closeReviewForm()">
+                Cancel
+              </button>
+            </div>
+          </form>
+          } @else {
+          <div class="rate-review-trigger-wrap">
+            <button type="button" class="rate-review-cta-btn" (click)="openReviewForm(order, item)">
+              ★ Rate &amp; Review
+            </button>
+          </div>
+          }
+          }
+          }
+          @if (isOrderDelivered(order) && getItemReturn(order, item)) {
+          <div class="product-item-actions-row">
+            <div class="product-return-status-chip">
+              <span>Return: <strong>{{ getItemReturn(order, item)?.status }}</strong></span>
+              <a routerLink="/returns" class="view-ret-link">View Status →</a>
+            </div>
+          </div>
+          }
+        </div>
+        }
+        } @else {
+        <p>Product details are not available for this order.</p>
+        }
+
+        @if (order.total !== undefined) {
+        <div class="details-total">
+          <span>Order total</span>
+          <strong>₹{{ order.total }}</strong>
+        </div>
+        }
+
+        <a class="track-order-link" [routerLink]="['/track-order']" [queryParams]="{ id: order.id }">
+          Track this order
+        </a>
+      </div>
+      }
+    </article>
+    }
+  </section>
+  }
+
+  @if (searched && orders.length === 0 && !errorMessage) {
+  <p class="history-hint">No orders found.</p>
+  }
+
+  @if (!searched && !errorMessage) {
+  <p class="history-hint">Enter the checkout email to view saved orders.</p>
+  }
+
+  <!-- Product Return Modal -->
+  @if (returnModalOpen && selectedReturnOrder) {
+  <div class="return-modal-overlay" (click)="closeProductReturnModal()" role="dialog" aria-modal="true"
+    aria-labelledby="returnModalTitle">
+    <div class="return-modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="returnModalTitle">Request Return for Order #{{ selectedReturnOrder.orderNumber || selectedReturnOrder.id
+          }}</h3>
+        <button type="button" class="close-modal-btn" (click)="closeProductReturnModal()"
+          aria-label="Close modal">✕</button>
+      </div>
+
+      @if (submittedReturnSuccess) {
+      <div class="confirmation-screen">
+        <div class="confirm-icon">✓</div>
+        <h4>Return Request Submitted Successfully</h4>
+        <p class="confirm-id">Return Request ID: <strong>{{ submittedReturnId }}</strong></p>
+        <p class="confirm-order">Order ID: <strong>#{{ selectedReturnOrder.orderNumber || selectedReturnOrder.id
+            }}</strong></p>
+        <p class="confirm-text">
+          Your return request and product evidence have been saved in our PostgreSQL database. Our sacred inspection
+          team will review your evidence and update you within 24 to 48 hours.
+        </p>
+        <div class="confirm-actions">
+          <button type="button" class="view-status-btn" (click)="viewReturnStatus()">
+            View Return Status
+          </button>
+          <button type="button" class="close-btn" (click)="closeProductReturnModal()">
+            Close
+          </button>
+        </div>
+      </div>
+      } @else {
+      <form class="return-form" (ngSubmit)="submitProductReturn()">
+        <!-- Products Selection for Return -->
+        <div class="modal-products-selection-section">
+          <div class="section-subheading">
+            <span class="subheading-icon">📦</span>
+            <div>
+              <h5>Select Products to Return</h5>
+              <p>Choose which item(s) you wish to return and choose return quantity</p>
+            </div>
+          </div>
+
+          <div class="return-items-selection-list">
+            @for (item of orderReturnItems; track item.productId || $index) {
+            <div class="return-item-select-card" [class.selected]="item.selected">
+              <label class="item-checkbox-container">
+                <input type="checkbox" [(ngModel)]="item.selected" name="selectItem_{{ $index }}">
+                <span class="checkmark"></span>
+              </label>
+
+              <div class="item-thumb-box">
+                <img [src]="item.image || 'assets/placeholder.png'" [alt]="item.name" class="modal-prod-img" />
+              </div>
+
+              <div class="item-meta-box">
+                <strong class="item-title">{{ item.name }}</strong>
+                <div class="item-sub-meta">
+                  @if (item.price !== undefined) {
+                  <span class="item-unit-price">₹{{ item.price }}</span>
+                  }
+                  <span class="item-purchased-tag">Purchased: {{ item.purchasedQuantity }}</span>
+                </div>
+              </div>
+
+              @if (item.selected) {
+              <div class="item-qty-control">
+                <span class="qty-control-label">Return Qty:</span>
+                <div class="stepper-group">
+                  <button type="button" class="stepper-btn" (click)="adjustItemReturnQty(item, -1)"
+                    [disabled]="item.returnQuantity <= 1" title="Decrease">−</button>
+                  <span class="stepper-val">{{ item.returnQuantity }}</span>
+                  <button type="button" class="stepper-btn" (click)="adjustItemReturnQty(item, 1)"
+                    [disabled]="item.returnQuantity >= item.purchasedQuantity" title="Increase">+</button>
+                </div>
+              </div>
+              }
+            </div>
+            }
+          </div>
+          @if (selectedReturnItemsCount === 0) {
+          <p class="select-warning">⚠️ Please select at least one product to return.</p>
+          }
+        </div>
+
+        <!-- Reason Dropdown -->
+        <label class="form-field-label">
+          <span>Reason for Return <span class="required-star"></span></span>
+          <select [(ngModel)]="selectedReturnReason" name="selectedReturnReason" class="reason-dropdown" required>
+            <option value="">-- Select a reason --</option>
+            @for (reason of returnReasonOptions; track reason) {
+            <option [value]="reason">{{ reason }}</option>
+            }
+          </select>
+        </label>
+
+        <!-- Additional Comments -->
+        <label class="form-field-label">
+          <span>Additional Comments (optional):</span>
+          <textarea [(ngModel)]="returnComments" name="returnComments" rows="3"
+            placeholder="Provide any details about the defect, damage, or discrepancy..."
+            class="comments-textarea"></textarea>
+        </label>
+
+        <!-- Product-Evidence Image Upload -->
+        <div class="evidence-upload-section">
+          <div class="evidence-label-row">
+            <span class="evidence-title">Product Evidence Photos <span class="required-star">*</span></span>
+            <span class="evidence-subtext">(Upload at least 1 image showing the issue. Max 5 images, 5MB each. JPG, PNG,
+              WebP)</span>
+          </div>
+
+          <div class="upload-dropzone">
+            <input type="file" id="evidenceFileInput" (change)="onEvidenceFilesSelected($event)"
+              accept="image/jpeg,image/png,image/webp" multiple class="file-input-hidden" />
+            <label for="evidenceFileInput" class="file-browse-btn">
+              <span>📷 Choose Evidence Photos</span>
+            </label>
+            @if (evidencePreviews.length > 0) {
+            <span class="file-count-text">{{ evidencePreviews.length }} photo(s) selected</span>
+            }
+          </div>
+
+          @if (evidenceUploadError) {
+          <p class="field-error-text">{{ evidenceUploadError }}</p>
+          }
+
+          <!-- Evidence Preview Grid -->
+          @if (evidencePreviews.length > 0) {
+          <div class="evidence-preview-grid">
+            @for (preview of evidencePreviews; track $index) {
+            <div class="preview-thumbnail-card">
+              <img [src]="preview.url" [alt]="preview.name" class="preview-thumb-img" />
+              <button type="button" class="remove-thumb-btn" (click)="removeEvidencePreview($index)"
+                aria-label="Remove photo">✕</button>
+              <span class="thumb-size-tag">{{ preview.size }} KB</span>
+            </div>
+            }
+          </div>
+          }
+        </div>
+
+        @if (returnSubmitError) {
+        <p class="submit-error-banner" role="alert">⚠ {{ returnSubmitError }}</p>
+        }
+
+        <!-- Submit Buttons -->
+        <div class="modal-form-actions">
+          <button type="submit" class="submit-return-btn"
+            [disabled]="returnSubmitting || !selectedReturnReason || evidencePreviews.length === 0">
+            @if (returnSubmitting) {
+            <span>Submitting Return Request...</span>
+            } @else {
+            <span>Submit Return Request</span>
+            }
+          </button>
+          <button type="button" class="cancel-modal-btn" [disabled]="returnSubmitting"
+            (click)="closeProductReturnModal()">
+            Cancel
+          </button>
+        </div>
+      </form>
+      }
+    </div>
+  </div>
+  }
+</main>

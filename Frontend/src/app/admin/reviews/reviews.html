@@ -1,0 +1,135 @@
+<main class="reviews-admin">
+  <header class="reviews-header">
+    <div>
+      <p class="eyebrow">STORE MODERATION</p>
+      <h1>Reviews &amp; Ratings Management</h1>
+
+    </div>
+    <button type="button" class="refresh-btn" (click)="loadReviews()" [disabled]="loading">
+      {{ loading ? '↻ Syncing...' : '↻ Refresh Data' }}
+    </button>
+  </header>
+
+  @if (alertMessage) {
+  <div class="alert-banner {{ alertType }}" role="alert">
+    {{ alertMessage }}
+  </div>
+  }
+
+  <!-- Stats Grid -->
+  <section class="stats-overview" aria-label="Review statistics">
+    <div class="stat-card">
+      <span class="stat-icon">★</span>
+      <div class="stat-meta">
+        <span class="stat-value">{{ stats.averageRating }} / 5</span>
+        <span class="stat-label">Average Store Rating</span>
+      </div>
+    </div>
+
+    <div class="stat-card" (click)="setStatusFilter('all')" style="cursor: pointer;" title="Show all reviews">
+      <span class="stat-icon">💬</span>
+      <div class="stat-meta">
+        <span class="stat-value">{{ stats.total }}</span>
+        <span class="stat-label">Total Reviews</span>
+      </div>
+    </div>
+
+    <div class="stat-card approved" (click)="setStatusFilter('approved')" style="cursor: pointer;" title="Filter by approved reviews">
+      <span class="stat-icon">✓</span>
+      <div class="stat-meta">
+        <span class="stat-value">{{ stats.approved }}</span>
+        <span class="stat-label">Approved &amp; Live</span>
+      </div>
+    </div>
+
+    <div class="stat-card pending" (click)="setStatusFilter('pending')" style="cursor: pointer;" title="Filter by pending reviews">
+      <span class="stat-icon">⏳</span>
+      <div class="stat-meta">
+        <span class="stat-value">{{ stats.pending }}</span>
+        <span class="stat-label">Pending Moderation</span>
+      </div>
+    </div>
+
+    <div class="stat-card rejected" (click)="setStatusFilter('rejected')" style="cursor: pointer;" title="Filter by rejected reviews">
+      <span class="stat-icon">✕</span>
+      <div class="stat-meta">
+        <span class="stat-value">{{ stats.rejected }}</span>
+        <span class="stat-label">Rejected Reviews</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Reviews List / Table -->
+  <section class="reviews-table-section">
+    @if (loading && reviews.length === 0) {
+    <div class="loading-state">
+      <p>Loading ratings &amp; reviews from database...</p>
+    </div>
+    } @else if (reviews.length === 0) {
+    <div class="empty-state">
+      <span class="empty-icon">📭</span>
+      <h3>No Reviews Found</h3>
+      <p>There are no reviews matching the selected filter criteria.</p>
+    </div>
+    } @else {
+    <div class="table-container">
+      <table class="reviews-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Customer</th>
+            <th>Rating</th>
+            <th>Review Text</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (rev of reviews; track rev._id) {
+          <tr class="review-row status-{{ rev.status }}">
+            <!-- Product -->
+            <td class="product-cell">
+              <strong class="product-name">{{ getProductName(rev.product) }}</strong>
+              @if (getProductSku(rev.product)) {
+              <small class="product-sku">SKU: {{ getProductSku(rev.product) }}</small>
+              }
+            </td>
+
+            <!-- Customer -->
+            <td class="customer-cell">
+              <strong class="customer-name">{{ getUserName(rev.user) }}</strong>
+              @if (getUserEmail(rev.user)) {
+              <small class="customer-email">{{ getUserEmail(rev.user) }}</small>
+              }
+            </td>
+
+            <!-- Rating -->
+            <td class="rating-cell">
+              <div class="stars-visual">
+                @for (star of [1, 2, 3, 4, 5]; track star) {
+                <span class="star-sym">{{ star <= rev.rating ? '★' : '☆' }}</span>
+                    }
+              </div>
+              <strong class="rating-val">{{ rev.rating }}/5</strong>
+            </td>
+
+            <!-- Review Text -->
+            <td class="comment-cell">
+              <p class="comment-text">"{{ rev.comment || 'No written comment' }}"</p>
+              <div class="review-row-actions"
+                style="margin-top: 8px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span class="status-badge {{ rev.status }}">{{ rev.status | uppercase }}</span>
+              </div>
+            </td>
+
+            <!-- Date -->
+            <td class="date-cell">
+              {{ rev.createdAt | date:'mediumDate' }}
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+  </section>
+</main>

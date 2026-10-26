@@ -1,0 +1,256 @@
+<main class="pickup-page">
+  <header class="pickup-header">
+    <div class="header-info">
+      <p class="section-tag">RETURNS &amp; LOGISTICS</p>
+      <h1>Pickup Location Management</h1>
+      <span>Manage return pickup locations stored directly in the database.</span>
+    </div>
+
+    <!-- Prominent Top Add Button -->
+    <div class="header-action-area">
+      <button class="primary-btn top-add-btn" type="button" (click)="openAdd()">
+        <span class="btn-icon">+</span> Add Pickup Location
+      </button>
+    </div>
+  </header>
+
+  @if (message) {
+    <div class="pickup-message" [class.error]="isError" role="status">
+      <span>{{ message }}</span>
+      <button type="button" class="close-msg-btn" (click)="message = ''" aria-label="Close message">✕</button>
+    </div>
+  }
+
+  <!-- Add / Edit Pickup Location Form Card -->
+  @if (showForm) {
+    <section class="form-card">
+      <div class="form-card-header">
+        <h2>{{ isEditing ? 'Edit Pickup Location' : 'Add New Pickup Location' }}</h2>
+        <button type="button" class="close-card-btn" (click)="cancelForm()" title="Close form">✕</button>
+      </div>
+
+      <form class="location-form" (ngSubmit)="saveLocation()">
+        <div class="form-grid">
+          <label>
+            <span class="field-label"><span class="required-star">*</span> Location / Warehouse Name</span>
+            <input
+              type="text"
+              name="name"
+              [(ngModel)]="formData.name"
+              maxlength="100"
+              placeholder="e.g. Main Return Hub, North Facility"
+              required>
+          </label>
+
+          <label>
+            <span class="field-label"><span class="required-star">*</span> Contact Person</span>
+            <input
+              type="text"
+              name="contactName"
+              [(ngModel)]="formData.contactName"
+              maxlength="100"
+              placeholder="e.g. Warehouse Incharge, Rajesh Kumar"
+              required>
+          </label>
+
+          <label>
+            <span class="field-label"><span class="required-star">*</span> Contact Phone</span>
+            <input
+              type="tel"
+              name="phone"
+              [(ngModel)]="formData.phone"
+              maxlength="20"
+              placeholder="e.g. +91 98765 43210"
+              required>
+          </label>
+
+          <label class="full-width">
+            <span class="field-label"><span class="required-star">*</span> Street Address</span>
+            <input
+              type="text"
+              name="address"
+              [(ngModel)]="formData.address"
+              maxlength="250"
+              placeholder="e.g. Plot 42, Sector 18, Industrial Area"
+              required>
+          </label>
+
+          <label>
+            <span class="field-label"><span class="required-star">*</span> City</span>
+            <input
+              type="text"
+              name="city"
+              [(ngModel)]="formData.city"
+              maxlength="60"
+              placeholder="e.g. Gurugram"
+              required>
+          </label>
+
+          <label>
+            <span class="field-label"><span class="required-star">*</span> State</span>
+            <input
+              type="text"
+              name="state"
+              [(ngModel)]="formData.state"
+              maxlength="60"
+              placeholder="e.g. Haryana"
+              required>
+          </label>
+
+          <label>
+            <span class="field-label"><span class="required-star">*</span> Postal Code (PIN)</span>
+            <input
+              type="text"
+              name="postalCode"
+              [(ngModel)]="formData.postalCode"
+              maxlength="12"
+              placeholder="e.g. 122015"
+              required>
+          </label>
+
+          <label>
+            <span class="field-label">Country (Optional)</span>
+            <input
+              type="text"
+              name="country"
+              [(ngModel)]="formData.country"
+              maxlength="50"
+              placeholder="India">
+          </label>
+
+          <div class="full-width checkbox-row">
+            <label class="toggle-label">
+              <input
+                type="checkbox"
+                name="isDefault"
+                [(ngModel)]="formData.isDefault">
+              <span class="toggle-text">Set as default pickup location for product returns</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="primary-btn submit-btn" type="submit" [disabled]="isSubmitting">
+            {{ isSubmitting ? 'Saving...' : (isEditing ? 'Update Location' : 'Save Location') }}
+          </button>
+          <button class="cancel-button" type="button" (click)="cancelForm()" [disabled]="isSubmitting">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+
+  <!-- Locations List Card -->
+  <section class="locations-table-card">
+    <div class="table-header-row">
+      <div class="table-title">
+        <h2>All Pickup Locations <span>({{ filteredLocations.length }})</span></h2>
+      </div>
+      <div class="table-tools">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            placeholder="Search locations..."
+            class="search-input">
+          @if (searchTerm) {
+            <button type="button" class="clear-search-btn" (click)="searchTerm = ''">✕</button>
+          }
+        </div>
+        <button class="refresh-btn" type="button" (click)="loadLocations()" [disabled]="isLoading" title="Refresh from database">
+          ↻ {{ isLoading ? 'Loading...' : 'Refresh' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="pickup-admin-table">
+        <thead>
+          <tr>
+            <th class="th-name">Location / Facility</th>
+            <th class="th-contact">Contact Details</th>
+            <th class="th-address">Address</th>
+            <th class="th-city">City &amp; PIN</th>
+            <th class="th-default">Status</th>
+            <th class="th-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (loc of filteredLocations; track loc._id) {
+            <tr>
+              <td class="td-name">
+                <div class="loc-name-cell">
+                  <strong class="loc-name-text">{{ loc.name }}</strong>
+                  @if (loc.isDefault) {
+                    <span class="default-badge">⭐ Default Return Hub</span>
+                  }
+                </div>
+              </td>
+              <td class="td-contact">
+                <div class="contact-cell">
+                  <span class="contact-name">👤 {{ loc.contactName }}</span>
+                  <span class="contact-phone">📞 {{ loc.phone }}</span>
+                </div>
+              </td>
+              <td class="td-address">
+                <p class="address-text">{{ loc.address }}</p>
+              </td>
+              <td class="td-city">
+                <span class="city-text">{{ loc.city }}, {{ loc.state }}</span>
+                <code class="pin-tag">{{ loc.postalCode }}</code>
+              </td>
+              <td class="td-default">
+                @if (loc.isDefault) {
+                  <span class="status-indicator status-default">Default</span>
+                } @else {
+                  <button
+                    type="button"
+                    class="btn-make-default"
+                    (click)="setDefault(loc)"
+                    title="Make this the default return pickup location">
+                    Set Default
+                  </button>
+                }
+              </td>
+              <td class="td-actions">
+                <div class="action-buttons-group">
+                  <button
+                    type="button"
+                    class="btn-action btn-edit"
+                    (click)="startEdit(loc)"
+                    title="Edit pickup location">
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-action btn-delete"
+                    (click)="deleteLocation(loc)"
+                    title="Delete pickup location from database">
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="empty-table-cell">
+                <div class="empty-table-message">
+                  @if (isLoading) {
+                    <p>Loading pickup locations from database...</p>
+                  } @else if (searchTerm) {
+                    <p>No locations match your search "{{ searchTerm }}".</p>
+                    <button type="button" class="cancel-button" (click)="searchTerm = ''">Clear Search</button>
+                  } @else {
+                    <p>No pickup locations found in the database. Click "Add Pickup Location" above to create one.</p>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>

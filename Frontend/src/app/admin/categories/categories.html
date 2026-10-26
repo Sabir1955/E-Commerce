@@ -1,0 +1,166 @@
+<main class="categories-page">
+  <header class="categories-header">
+    <div class="header-info">
+      <p class="section-tag">CATALOGUE</p>
+      <h1>Category Management</h1>
+
+    </div>
+
+    <!-- Prominent Add Category Button at the Top -->
+    <div class="header-action-area">
+      <button class="primary-btn top-add-btn" type="button" (click)="openAddCategory()">
+        <span class="btn-icon">+</span> Add Category
+      </button>
+    </div>
+  </header>
+
+  @if (message) {
+  <div class="category-message" [class.error]="isError" role="status">
+    <span>{{ message }}</span>
+    <button type="button" class="close-msg-btn" (click)="message = ''">✕</button>
+  </div>
+  }
+
+  <!-- Collapsible Add Category Card (opened when clicking Add Category) -->
+  @if (showAddForm) {
+  <section class="add-category-card">
+    <div class="form-card-header">
+      <h2>Create New Category</h2>
+      <button type="button" class="close-card-btn" (click)="closeAddCategory()" title="Close form">✕</button>
+    </div>
+
+    <form class="category-form" (ngSubmit)="addCategory()">
+      <div class="category-form-grid">
+        <label>
+          <span class="field-label"><span class="required-star">*</span> Category Name</span>
+          <input type="text" name="newCategory" [(ngModel)]="newCategory" maxlength="60"
+            placeholder="e.g. Gemstones, Rudraksha, Yantra" required>
+        </label>
+
+        <label>
+          <span class="field-label">Description (Optional)</span>
+          <input type="text" name="newDescription" [(ngModel)]="newDescription" maxlength="200"
+            placeholder="Brief description of items in this category...">
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button class="primary-btn submit-btn" type="submit" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Adding Category...' : 'Save Category' }}
+        </button>
+        <button class="cancel-button" type="button" (click)="closeAddCategory()" [disabled]="isSubmitting">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </section>
+  }
+
+  <!-- Immediately show all existing categories in a clean table/list format below -->
+  <section class="category-table-card">
+    <div class="table-header-row">
+      <div class="table-title">
+        <h2>All Categories <span>({{ filteredCategories.length }})</span></h2>
+      </div>
+      <div class="table-tools">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" [(ngModel)]="searchTerm" placeholder="Search categories..." class="search-input">
+          @if (searchTerm) {
+          <button type="button" class="clear-search-btn" (click)="searchTerm = ''">✕</button>
+          }
+        </div>
+        <button class="refresh-btn" type="button" (click)="loadCategories()" [disabled]="isLoading"
+          title="Refresh from MongoDB">
+          ↻ {{ isLoading ? 'Loading...' : 'Refresh' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="category-admin-table">
+        <thead>
+          <tr>
+            <th class="th-name">Category Name</th>
+            <th class="th-count">Assigned Products</th>
+            <th class="th-status">Status</th>
+            <th class="th-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (category of filteredCategories; track category._id) {
+          <tr [class.inactive-row]="!category.active">
+            <td class="td-name">
+              @if (category.isEditing) {
+              <form class="inline-rename-form" (ngSubmit)="saveCategoryEdit(category)">
+                <div class="inline-edit-fields">
+                  <input type="text" name="editingName" [(ngModel)]="category.editingName" maxlength="60"
+                    class="inline-rename-input" placeholder="Category Name" required>
+                  <input type="text" name="editingDescription" [(ngModel)]="category.editingDescription" maxlength="200"
+                    class="inline-rename-input inline-desc-input" placeholder="Description (Optional)">
+                </div>
+                <div class="inline-edit-btns">
+                  <button type="submit" class="btn-action btn-save">Save</button>
+                  <button type="button" class="btn-action btn-cancel" (click)="cancelEdit(category)">Cancel</button>
+                </div>
+              </form>
+              } @else {
+              <div class="category-title-cell">
+                <strong class="category-name-text">{{ category.name }}</strong>
+                @if (category.description) {
+                <p class="category-desc-snippet">{{ category.description }}</p>
+                }
+              </div>
+              }
+            </td>
+            <td class="td-count">
+              <span class="product-count-badge" [class.count-zero]="category.productCount === 0">
+                {{ category.productCount }} product{{ category.productCount === 1 ? '' : 's' }}
+              </span>
+            </td>
+            <td class="td-status">
+              <span class="status-indicator" [class.status-active]="category.active"
+                [class.status-inactive]="!category.active">
+                {{ category.active ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td class="td-actions">
+              <div class="action-buttons-group">
+                @if (!category.isEditing) {
+                <button type="button" class="btn-action btn-edit" (click)="startEdit(category)" title="Edit category">
+                  Edit
+                </button>
+                }
+                <button type="button" class="btn-action" [class.btn-deactivate]="category.active"
+                  [class.btn-reactivate]="!category.active" (click)="toggleCategory(category)"
+                  [title]="category.active ? 'Deactivate category' : 'Reactivate category'">
+                  {{ category.active ? 'Deactivate' : 'Reactivate' }}
+                </button>
+                <button type="button" class="btn-action btn-delete" (click)="deleteCategory(category)"
+                  title="Delete category permanently from database">
+                  Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="4" class="empty-table-cell">
+              <div class="empty-table-message">
+                @if (isLoading) {
+                <p>Loading categories from MongoDB...</p>
+                } @else if (searchTerm) {
+                <p>No categories match your search "{{ searchTerm }}".</p>
+                <button type="button" class="cancel-button" (click)="searchTerm = ''">Clear Search</button>
+                } @else {
+                <p>No categories found in the database. Use the "Add Category" button above to add a category.</p>
+                }
+              </div>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>

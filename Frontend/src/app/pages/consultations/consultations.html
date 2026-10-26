@@ -1,0 +1,544 @@
+<div class="consultations-page">
+  <!-- Hero Banner -->
+  <section class="consultation-hero">
+    <div class="container hero-inner">
+      <div class="sacred-badge">
+        <span>✦</span> VEDIC JYOTISH CONSULTATION · प्रामाणिक वैदिक परामर्श <span>✦</span>
+      </div>
+      <h1>Book Consultation with <span class="gold-text">{{ selectedAstrologer?.name || 'Astro Poonam Vaish Mam'
+          }}</span></h1>
+      <p class="hero-desc">
+        Seek classical Vedic wisdom on Kundali analysis, career growth, marriage matching, and planetary remedies.
+        Choose between private 1-on-1 Google Meet video sessions or in-person physical visits to our {{
+        officeDetails.city || 'Patna' }} office.
+      </p>
+
+      <div class="guarantees-strip">
+        <div class="guarantee-item">
+          <span class="icon">📜</span>
+          <span>Paramparik Vedic Jyotish</span>
+        </div>
+        <div class="guarantee-divider">·</div>
+        <div class="guarantee-item">
+          <span class="icon">🔒</span>
+          <span>100% Confidential &amp; Private</span>
+        </div>
+        <div class="guarantee-divider">·</div>
+        <div class="guarantee-item">
+          <span class="icon">📹</span>
+          <span>Online Google Meet &amp; Office Visit</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container main-content-wrap">
+    @if (isLoading) {
+    <div class="loading-state">
+      <div class="cosmic-spinner"></div>
+      <p>Connecting with celestial guides...</p>
+    </div>
+    }
+
+    @if (errorMessage) {
+    <div class="alert alert-danger" role="alert">
+      <span>⚠</span> {{ errorMessage }}
+    </div>
+    }
+
+    <!-- Booking Saved / Pending Admin Approval Screen -->
+    @if (bookingSuccess) {
+    <section class="confirmation-section">
+      <div class="confirmation-card">
+        <div class="sacred-sun-icon">☀️</div>
+        <h2>Consultation Booking Request Saved!</h2>
+        <p class="confirm-subtitle">
+          Your consultation request <strong>#{{ bookingSuccess.bookingNumber }}</strong> has been registered with status
+          <strong class="gold-text">Pending Admin Approval</strong>.
+        </p>
+
+        <!-- Status Banner -->
+        <div class="status-banner" [class.offline]="bookingSuccess.consultationMode === 'offline'">
+          <span class="status-pill status-pending-pill">
+            ⏳ Status: Pending Admin Approval ({{ bookingSuccess.consultationMode === 'offline' ? 'Offline Office Visit'
+            : 'Online Google Meet' }})
+          </span>
+        </div>
+
+        <!-- Receipt Details -->
+        <div class="receipt-grid">
+          <div class="receipt-item">
+            <span class="label">Booking Number</span>
+            <strong>#{{ bookingSuccess.bookingNumber }}</strong>
+          </div>
+          <div class="receipt-item">
+            <span class="label">Consultation Mode</span>
+            <strong>{{ bookingSuccess.consultationMode === 'offline' ? 'Offline Physical Office Visit (Patna)' : 'Online
+              Video via Google Meet' }}</strong>
+          </div>
+          <div class="receipt-item">
+            <span class="label">Date &amp; Time</span>
+            <strong>{{ bookingSuccess.scheduledDate }} at {{ bookingSuccess.startTime }} ({{
+              bookingSuccess.durationMinutes }}m)</strong>
+          </div>
+          <div class="receipt-item">
+            <span class="label">Astrologer</span>
+            <strong>{{ selectedAstrologer?.name || 'Astro Poonam Vaish Mam' }}</strong>
+          </div>
+          <div class="receipt-item">
+            <span class="label">Approval Status</span>
+            <span class="payment-badge-pending">⏳ Pending Admin Approval</span>
+          </div>
+        </div>
+
+        <!-- OFFLINE CONSULTATION DETAILS -->
+        @if (bookingSuccess.consultationMode === 'offline') {
+        <div class="offline-receipt-box">
+          <div class="box-header">
+            <span class="icon">🏛️</span>
+            <h4>{{ selectedAstrologer?.venueTitle || 'Physical Office Visiting Venue' }}</h4>
+          </div>
+          <div class="office-name">{{ officeDetails.name }}</div>
+          <p class="office-address">{{ bookingSuccess.officeAddress || officeDetails.address }}</p>
+
+          <div class="office-meta-row">
+            <span>🕒 Visiting Hours: {{ officeDetails.visitingHours }}</span>
+          </div>
+          <p class="instructions-text">ℹ️ {{ officeDetails.instructions }}</p>
+
+          <div class="maps-action-wrap">
+            <a [href]="bookingSuccess.officeMapsUrl || officeDetails.mapsUrl" target="_blank" rel="noopener noreferrer"
+              class="btn-maps-large">
+              📍 Open Office in Google Maps <span>↗</span>
+            </a>
+          </div>
+        </div>
+        }
+
+        <!-- Next Steps Guidance -->
+        <div class="next-steps-card">
+          <h4>📋 What Happens Next?</h4>
+          @if (bookingSuccess.consultationMode === 'online') {
+          <p>
+            1. The administrator will review your requested time slot and set the consultation fee.<br>
+            2. Once approved, visit <strong>My Consultations</strong> to pay through the gateway.<br>
+            3. Your Google Meet video link will be provided upon payment confirmation.
+          </p>
+          } @else {
+          <p>
+            1. The administrator will review your offline appointment request.<br>
+            2. View your confirmed visit schedule and directions in <strong>My Consultations</strong>.
+          </p>
+          }
+        </div>
+
+        <div class="receipt-footer-actions">
+          <a routerLink="/my-consultations" class="btn-gold-primary">
+            View In My Consultations Dashboard <span>→</span>
+          </a>
+          <button type="button" class="btn-outline-gold" (click)="resetBooking()">
+            Book Another Consultation
+          </button>
+        </div>
+      </div>
+    </section>
+    }
+
+    <!-- Booking Form Workflow: Online/Offline, Date, Duration, Slots, Submit -->
+    @if (!bookingSuccess && selectedAstrologer) {
+    <div class="booking-layout">
+
+      <!-- Interactive Booking Form Column -->
+      <main class="booking-main">
+        @if (bookingError) {
+        <div class="alert alert-danger" role="alert">
+          <span>⚠</span> {{ bookingError }}
+        </div>
+        }
+
+        <!-- Step 1: Selection View (Mode, Duration, Date, Time + Next Button) -->
+        @if (currentStep === 'select') {
+        <!-- 1. Choose Online or Offline Consultation -->
+        <section class="booking-step">
+          <div class="step-header">
+            <span class="step-num">1</span>
+            <div>
+              <h3>Select Consultation Mode</h3>
+              <p>Attend remotely via Google Meet or visit our Patna office in person</p>
+            </div>
+          </div>
+
+          <div class="modes-grid">
+            <!-- Online Mode Option -->
+            <div class="mode-card" [class.selected]="consultationMode === 'online'" (click)="setMode('online')">
+              <div class="mode-icon-circle">📹</div>
+              <div class="mode-info">
+                <h4>Online Consultation</h4>
+                <p class="mode-tagline">Private 1-on-1 Google Meet Video Call</p>
+                <ul class="mode-perks">
+                  <li>✓ High definition private video session</li>
+                  <li>✓ Live screen Kundali sharing &amp; charts</li>
+                  <li>✓ Flexible from anywhere in the world</li>
+                </ul>
+              </div>
+              <div class="mode-radio"></div>
+            </div>
+
+            <!-- Offline Mode Option -->
+            <div class="mode-card" [class.selected]="consultationMode === 'offline'" (click)="setMode('offline')">
+              <div class="mode-icon-circle">🏛️</div>
+              <div class="mode-info">
+                <h4>Offline Consultation</h4>
+                <p class="mode-tagline">Physical Visit to {{ selectedAstrologer?.organizationName || 'Astro Nirvan' }}
+                  {{ officeDetails.city || 'Patna' }} Office</p>
+                <ul class="mode-perks">
+                  <li>✓ Face-to-face reading with {{ selectedAstrologer?.name || 'Astro Poonam Vaish Mam' }}</li>
+                  <li>✓ Traditional hand-written chart examination</li>
+                  <li>✓ Confirmed directly without online payment</li>
+                </ul>
+              </div>
+              <div class="mode-radio"></div>
+            </div>
+          </div>
+
+          <!-- Physical Office Venue Display if Offline -->
+          @if (consultationMode === 'offline') {
+          <div class="patna-office-display">
+            <div class="pod-header">
+              <span class="icon">📍</span>
+              <div>
+                <h4>{{ selectedAstrologer?.venueTitle || ('Physical Office Venue — ' + (officeDetails.city || 'Patna'))
+                  }}</h4>
+                <span class="office-name-bold">{{ officeDetails.name }}</span>
+              </div>
+            </div>
+            <div class="pod-address-box">
+              <p class="address-text">{{ officeDetails.address }}</p>
+              <div class="address-actions">
+                <a [href]="officeDetails.mapsUrl" target="_blank" rel="noopener noreferrer" class="btn-maps">
+                  📍 Open in Google Maps <span>↗</span>
+                </a>
+              </div>
+            </div>
+            <div class="pod-footer">
+              <div class="info-pill">🕒 {{ officeDetails.visitingHours }}</div>
+              <div class="info-pill">ℹ️ {{ officeDetails.instructions }}</div>
+            </div>
+          </div>
+          }
+        </section>
+
+        <!-- 2. Consultation Duration -->
+        <section class="booking-step">
+          <div class="step-header">
+            <span class="step-num">2</span>
+            <div>
+              <h3>Select Consultation Duration</h3>
+              <p>Choose the duration for your astrological reading</p>
+            </div>
+          </div>
+
+          <div class="durations-row">
+            <button type="button" class="duration-pill" [class.active]="selectedDuration === 30"
+              (click)="setDuration(30)">
+              <span class="mins">30 Mins</span>
+              <small>Express Jyotish Reading</small>
+            </button>
+
+            <button type="button" class="duration-pill" [class.active]="selectedDuration === 45"
+              (click)="setDuration(45)">
+              <span class="mins">45 Mins</span>
+              <small>Comprehensive Analysis</small>
+            </button>
+
+            <button type="button" class="duration-pill" [class.active]="selectedDuration === 60"
+              (click)="setDuration(60)">
+              <span class="mins">60 Mins</span>
+              <small>Full Life Chart &amp; Remedies</small>
+            </button>
+
+            <button type="button" class="duration-pill" [class.active]="selectedDuration === 90"
+              (click)="setDuration(90)">
+              <span class="mins">90 Mins</span>
+              <small>Deep Kundali &amp; Family Milan</small>
+            </button>
+          </div>
+        </section>
+
+        <!-- 3. Consultation Appointment Date & Available Slots -->
+        <section class="booking-step consultation-appointment-step">
+          <div class="step-header">
+            <span class="step-num">3</span>
+            <div>
+              <h3>Consultation Appointments</h3>
+              <p>Choose your appointment date to view available time slots for your reading</p>
+            </div>
+          </div>
+
+          <!-- Appointment Date Displayed Inside A Prominent Interactive Button -->
+          <div class="appointment-date-btn-wrapper">
+            <button type="button" class="btn-appointment-date" [class.open]="isDatePickerOpen"
+              (click)="toggleDatePicker()" [attr.aria-expanded]="isDatePickerOpen"
+              aria-label="Appointment date: {{ selectedDate | date:'fullDate' }}. Click to change date and view available appointment slots">
+              <div class="date-btn-inner">
+                <span class="date-calendar-icon">🗓️</span>
+                <div class="date-btn-text">
+                  <span class="date-btn-label">Appointment Date &amp; Time Slot</span>
+                  <strong class="date-btn-value">
+                    {{ selectedDate ? (selectedDate | date:'fullDate') : 'Choose Consultation Date' }}
+                    @if (selectedSlot || startTime24) {
+                    <span class="date-btn-selected-slot"> · {{ formatSlotTime(selectedSlot ? selectedSlot.startTime : startTime24) }}</span>
+                    }
+                  </strong>
+                </div>
+              </div>
+              <div class="date-btn-action">
+                <span class="date-btn-badge">
+                  {{ isDatePickerOpen ? 'Hide Picker ▲' : (selectedSlot || startTime24 ? 'Change Date / Slot ▼' : 'View Slots ▼') }}
+                </span>
+              </div>
+            </button>
+          </div>
+
+          <!-- Date Picker & Available Appointment Slots Panel (Opened when button is clicked) -->
+          @if (isDatePickerOpen) {
+          <div class="date-slots-interactive-panel">
+            <!-- Date Picker Bar -->
+            <div class="date-picker-bar">
+              <div class="date-picker-bar-header">
+                <span class="dpb-title">📅 Choose Calendar Date</span>
+                <span class="dpb-timezone">Timezone: Asia/Kolkata (IST)</span>
+              </div>
+
+              <div class="date-selection-row">
+                <div class="quick-dates-group">
+                  <button type="button" class="btn-quick-date" [class.active]="selectedDate === getDateString(0)"
+                    (click)="setQuickDate(0)">
+                    Today
+                  </button>
+                  <button type="button" class="btn-quick-date" [class.active]="selectedDate === getDateString(1)"
+                    (click)="setQuickDate(1)">
+                    Tomorrow
+                  </button>
+                  <button type="button" class="btn-quick-date" [class.active]="selectedDate === getDateString(2)"
+                    (click)="setQuickDate(2)">
+                    Day After
+                  </button>
+                </div>
+
+                <div class="custom-date-wrap">
+                  <input id="consultation-date-input" type="date" [(ngModel)]="selectedDate"
+                    [min]="getTodayDateString()" (change)="onDateChange()" class="date-input-box"
+                    [class.active]="selectedDate && selectedDate !== getDateString(0) && selectedDate !== getDateString(1) && selectedDate !== getDateString(2)"
+                    aria-label="Pick calendar date">
+                </div>
+              </div>
+            </div>
+
+            <!-- Available Appointment Slots Section Header & Meta -->
+            <div class="slots-section-divider">
+              <h4>Available Appointment Slots for {{ selectedDate | date:'mediumDate' }}</h4>
+            </div>
+
+            <!-- Slot Availability Legend & Count -->
+            <div class="slots-meta-bar">
+              <div class="slots-legend">
+                <span class="legend-item legend-available">
+                  <span class="legend-dot dot-available"></span> Available
+                </span>
+                <span class="legend-item legend-unavailable">
+                  <span class="legend-dot dot-unavailable"></span> Unavailable / Reserved
+                </span>
+              </div>
+              @if (!isLoadingSlots && !isHoliday && !isWeeklyOff && slots.length > 0) {
+              <span class="slots-count-badge">
+                🟢 {{ availableSlotsCount }} of {{ slots.length }} Slots Available
+              </span>
+              }
+            </div>
+
+            <!-- Loading State for Slots -->
+            @if (isLoadingSlots) {
+            <div class="slots-loading-state">
+              <div class="cosmic-spinner-small"></div>
+              <span>Checking slot availability for {{ selectedDate | date:'mediumDate' }}...</span>
+            </div>
+            }
+
+            <!-- Astrologer Holiday Alert -->
+            @if (!isLoadingSlots && isHoliday) {
+            <div class="slot-alert-box holiday">
+              <span class="alert-icon">🗓️</span>
+              <div>
+                <strong>Astrologer Unavailable on this Date</strong>
+                <p>{{ holidayReason || 'The astrologer is not available on this date. Please select another date from
+                  the calendar.' }}</p>
+              </div>
+            </div>
+            }
+
+            <!-- Weekly Off Alert -->
+            @if (!isLoadingSlots && isWeeklyOff) {
+            <div class="slot-alert-box weekly-off">
+              <span class="alert-icon">🗓️</span>
+              <div>
+                <strong>Weekly Off</strong>
+                <p>The astrologer does not schedule consultations on this day of the week. Please select another date.
+                </p>
+              </div>
+            </div>
+            }
+
+            <!-- Offline Mode Disabled Alert -->
+            @if (!isLoadingSlots && offlineDisabled && consultationMode === 'offline') {
+            <div class="slot-alert-box warning">
+              <span class="alert-icon">⚠️</span>
+              <div>
+                <strong>In-Person Visits Disabled</strong>
+                <p>In-person consultations are currently paused. You can switch to Online (Google Meet) mode above.</p>
+              </div>
+            </div>
+            }
+
+            <!-- No Slots Generated -->
+            @if (!isLoadingSlots && !isHoliday && !isWeeklyOff && slots.length === 0) {
+            <div class="slot-empty-notice">
+              <p>No consultation appointment slots found for this date. Please choose another date above.</p>
+            </div>
+            }
+
+            <!-- Appointment Slots Grid (Showing available & unavailable slots, selection only for available) -->
+            @if (!isLoadingSlots && !isHoliday && !isWeeklyOff && slots.length > 0) {
+            <div class="slots-grid">
+              @for (slot of slots; track slot.startTime) {
+              <button type="button" class="slot-card" [class.available]="slot.isAvailable"
+                [class.unavailable]="!slot.isAvailable"
+                [class.selected]="selectedSlot?.startTime === slot.startTime || (startTime24 === slot.startTime && slot.isAvailable)"
+                [disabled]="!slot.isAvailable" (click)="selectSlot(slot)"
+                [attr.aria-label]="slot.isAvailable ? ('Select slot from ' + formatSlotTime(slot.startTime) + ' to ' + formatSlotTime(slot.endTime)) : ('Slot ' + formatSlotTime(slot.startTime) + ' is unavailable: ' + (slot.reason || 'Booked'))">
+                <div class="slot-card-top">
+                  <span class="slot-time-main">{{ formatSlotTime(slot.startTime) }}</span>
+                  <span class="slot-time-end">to {{ formatSlotTime(slot.endTime) }}</span>
+                </div>
+                <div class="slot-card-bottom">
+                  @if (slot.isAvailable) {
+                  <span class="badge-slot-avail">✓ Available</span>
+                  } @else {
+                  <span class="badge-slot-unavail">✕ {{ slot.reason || 'Unavailable' }}</span>
+                  }
+                </div>
+              </button>
+              }
+            </div>
+            }
+
+            <!-- Active Selection Preview Strip -->
+            @if (selectedSlot || startTime24) {
+            <div class="time-selected-preview-strip">
+              <div class="preview-point">
+                <span class="point-label">Selected Appointment Slot:</span>
+                <strong class="point-val">
+                  {{ formatSlotTime(selectedSlot ? selectedSlot.startTime : startTime24) }} – {{
+                  formatSlotTime(selectedSlot ? selectedSlot.endTime : endTime24) }}
+                </strong>
+              </div>
+              <div class="preview-arrow-sep">➔</div>
+              <div class="preview-point">
+                <span class="point-label">Duration:</span>
+                <strong class="point-val">{{ selectedDuration }} Minutes</strong>
+              </div>
+            </div>
+            }
+          </div>
+          }
+        </section>
+
+        <!-- Next Button (Right Side of Page) -->
+        <div class="next-action-row">
+          <button type="button" class="btn-next-step" [disabled]="!selectedDate || !startTime24"
+            (click)="goToSummaryStep()">
+            <span>Next</span>
+            <span class="next-arrow">➔</span>
+          </button>
+        </div>
+        }
+
+        <!-- Step 2: Next Page (Booking Request Summary Card) -->
+        @if (currentStep === 'summary') {
+        <div class="summary-page-nav">
+          <button type="button" class="btn-back-step" (click)="goToSelectStep()">
+            ← Back to Edit Details
+          </button>
+          <span class="summary-step-tag">Step 2 of 2 · Review Booking Request</span>
+        </div>
+
+        <!-- Existing Booking Request Summary Card -->
+        <section class="booking-summary-section">
+          <div class="summary-card">
+            <div class="summary-header">
+              <h4>Booking Request Summary</h4>
+              <span class="secure-badge">🔒 256-Bit SSL Encrypted</span>
+            </div>
+
+            <div class="summary-breakdown">
+              <div class="breakdown-row">
+                <span>Astrologer:</span>
+                <strong>{{ selectedAstrologer?.name || 'Astro Poonam Vaish Mam' }}</strong>
+              </div>
+              <div class="breakdown-row">
+                <span>Consultation:</span>
+                <strong>{{ selectedAstrologer?.consultationTitle || 'Vedic Astrology Consultation' }}</strong>
+              </div>
+              <div class="breakdown-row">
+                <span>Consultation Mode:</span>
+                <strong>{{ consultationMode === 'offline' ? ('Offline Physical Office Visit (' + (officeDetails.city ||
+                  'Patna') + ')') : 'Online Google Meet' }}</strong>
+              </div>
+              <div class="breakdown-row">
+                <span>Duration:</span>
+                <strong>{{ selectedDuration }} Minutes</strong>
+              </div>
+              <div class="breakdown-row">
+                <span>Scheduled Date &amp; Time:</span>
+                <strong>
+                  {{ selectedDate }} · {{ selectedTimeFormatted }} – {{ endTimeFormatted }}
+                </strong>
+              </div>
+              <div class="breakdown-divider"></div>
+              <div class="breakdown-row total-row">
+                <span class="total-label">Booking Status:</span>
+                <span class="total-val" style="color: #F7D070;">Pending Admin Approval</span>
+              </div>
+            </div>
+
+            <div class="payment-policy-note">
+              <small>
+                ℹ️ <strong>Booking Process:</strong> Submitting reserves your requested time for admin review.
+                @if (consultationMode === 'online') {
+                The administrator reviews your request and sets the consultation amount upon acceptance. You then pay
+                via gateway in <strong>My Consultations</strong> to access your Google Meet link.
+                } @else {
+                For offline appointments, once accepted by the administrator, your in-person consultation is confirmed
+
+                }
+              </small>
+            </div>
+
+            <div class="action-wrap summary-actions-wrap">
+              <button type="button" class="btn-submit-short" [disabled]="!selectedDate || !startTime24 || isReserving"
+                (click)="submitBookingRequest()">
+                @if (isReserving) {
+                <span>Saving Request...</span>
+                } @else {
+                <span>Submit Request ➔</span>
+                }
+              </button>
+            </div>
+          </div>
+        </section>
+        }
+      </main>
+    </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,238 @@
+<section class="page-title">
+
+  <div class="sacred-badge">
+    <span class="zodiac-symbol">✦</span>
+    <span>VEDIC SANCTUARY COLLECTION · प्रामाणिक संग्रह</span>
+    <span class="zodiac-symbol">✦</span>
+  </div>
+
+  <h1>Astrology Products</h1>
+
+  <p>
+    Discover energized Vedic artifacts, authentic gemstones, and sacred tools for your spiritual journey
+  </p>
+
+  <p class="sanskrit-subtext">सर्वं खल्विदं ब्रह्म · All is manifestation of the Divine</p>
+
+</section>
+
+<section class="products-section">
+
+  <div class="filters">
+
+    <input
+      type="text"
+      [(ngModel)]="searchText"
+      (input)="onSearchInput()"
+      aria-label="Search"
+      placeholder="Search">
+
+    <select
+      [(ngModel)]="selectedCategory"
+      (change)="onFilterChange()">
+
+      <option value="All">
+        All Categories
+      </option>
+
+      @for (category of categories; track category) {
+
+        <option [value]="category">
+          {{ category }}
+        </option>
+
+      }
+
+    </select>
+
+    <div class="price-range">
+      <label>
+        Min price
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          [(ngModel)]="minimumPrice"
+          (ngModelChange)="onFilterChange()"
+          aria-label="Minimum price">
+      </label>
+      <label>
+        Max price
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          [(ngModel)]="maximumPrice"
+          (ngModelChange)="onFilterChange()"
+          aria-label="Maximum price">
+      </label>
+    </div>
+
+    <select
+      [(ngModel)]="sortBy"
+      (change)="onFilterChange()"
+      aria-label="Sort products">
+      <option value="relevance">Default order</option>
+      <option value="price-asc">Price: Low to High</option>
+      <option value="price-desc">Price: High to Low</option>
+      <option value="newest">Newest</option>
+      <option value="popularity">Popularity</option>
+    </select>
+
+    @for (attribute of attributeFilters; track attribute.name) {
+      @if (attribute.name.toLowerCase() !== 'stone') {
+        <select
+          [ngModel]="attributeValues[attribute.name] || ''"
+          (ngModelChange)="setAttributeValue(attribute.name, $event)"
+          [attr.aria-label]="'Filter by ' + attribute.name">
+          <option value="">All {{ attribute.name }}</option>
+          @for (value of attribute.values; track value) {
+            <option [value]="value">{{ value }}</option>
+          }
+        </select>
+      }
+    }
+
+    <button class="clear-filters" type="button" (click)="clearFilters()">Clear filters</button>
+
+  </div>
+
+  @if (hasInvalidPriceRange) {
+    <p class="filter-message" role="alert">Minimum price cannot be greater than maximum price.</p>
+  }
+
+  <p class="result-count">
+    Showing {{ filteredProducts.length }} of {{ totalCount }} products
+  </p>
+
+  <div class="product-grid">
+
+    @for (
+      product of filteredProducts;
+      track product.id
+    ) {
+
+      <div class="product-card">
+
+        <img
+          [src]="product.image"
+          [alt]="product.name"
+          loading="lazy">
+
+        <div class="product-content">
+
+          <small>
+            {{ product.category }}
+          </small>
+
+          <h3>
+            {{ product.name }}
+          </h3>
+
+          <div class="product-attributes">
+            @if (product.attributes?.['stone']) {
+              <span class="product-attribute">{{ product.attributes?.['stone'] }}</span>
+            }
+            @if (product.attributes?.['ruling_planet']) {
+              <span class="product-attribute">{{ product.attributes?.['ruling_planet'] }}</span>
+            }
+          </div>
+
+          <p>
+            {{ product.description }}
+          </p>
+
+          <small class="stock-label">
+            @if (product.stock === 0) {
+              Out of stock
+            } @else if (!product.available) {
+              Currently unavailable
+            } @else {
+              {{ product.stock }} in stock
+            }
+          </small>
+
+          <strong>
+            ₹{{ product.price }}
+          </strong>
+
+          <div class="buttons">
+
+            <a
+              class="view-btn"
+              [routerLink]="[
+                '/product',
+                product.id
+              ]">
+
+              View Details
+
+            </a>
+
+            <button
+              class="primary-btn"
+              [disabled]="product.stock === 0 || !product.available"
+              (click)="addToCart(product)">
+
+              {{ product.stock === 0 || !product.available ? 'Unavailable' : 'Add to Cart' }}
+
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    }
+
+  </div>
+
+  @if (totalPages > 1) {
+    <div class="pagination-wrapper">
+      <nav class="pagination-container" aria-label="Products pagination">
+        <button
+          type="button"
+          class="pagination-btn pagination-prev"
+          [disabled]="currentPage === 1 || isLoading"
+          (click)="prevPage()"
+          aria-label="Previous Page">
+          ‹ Previous
+        </button>
+
+        <div class="pagination-numbers">
+          @for (p of getPageNumbers(); track p) {
+            <button
+              type="button"
+              class="page-number-btn"
+              [class.active]="p === currentPage"
+              [disabled]="isLoading"
+              (click)="goToPage(p)"
+              [attr.aria-current]="p === currentPage ? 'page' : null">
+              {{ p }}
+            </button>
+          }
+        </div>
+
+        <button
+          type="button"
+          class="pagination-btn pagination-next"
+          [disabled]="currentPage >= totalPages || isLoading"
+          (click)="nextPage()"
+          aria-label="Next Page">
+          Next ›
+        </button>
+      </nav>
+      <p class="pagination-info">Page {{ currentPage }} of {{ totalPages }}</p>
+    </div>
+  }
+
+  @if (filteredProducts.length === 0 && !isLoading) {
+
+    <div class="empty">
+      No products found.
+    </div>
+
+  }
+
+</section>

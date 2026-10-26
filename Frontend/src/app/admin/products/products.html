@@ -1,0 +1,259 @@
+<main class="product-admin">
+  <header class="admin-page-header">
+    <div class="header-info">
+      <p class="section-tag">CATALOGUE</p>
+      <h1>Product Management</h1>
+
+    </div>
+
+    <!-- Prominent Add Product Button at the Top -->
+    <div class="header-action-area">
+      <button class="primary-btn top-add-btn" type="button" (click)="openAddProduct()">
+        <span class="btn-icon">+</span> Add Product
+      </button>
+    </div>
+  </header>
+
+  @if (message) {
+  <div class="admin-message" [class.error]="isError" role="status">
+    <span>{{ message }}</span>
+    <button type="button" class="close-msg-btn" (click)="message = ''">✕</button>
+  </div>
+  }
+
+  <!-- Collapsible Product Form Card (opened when clicking Add Product or Edit) -->
+  @if (showForm) {
+  <section class="product-form-card" id="product-form-section">
+    <div class="form-card-header">
+      <h2>{{ editingProductId === null ? 'Create New Product' : 'Edit Product Details' }}</h2>
+      <button type="button" class="close-card-btn" (click)="closeForm()" title="Close form">✕</button>
+    </div>
+
+    <form class="product-form" (ngSubmit)="saveProduct()">
+      <div class="product-form-grid">
+        <label>
+          <span class="field-label"><span class="required-star">*</span> Product Name</span>
+          <input type="text" name="productName" [(ngModel)]="form.name" maxlength="150"
+            placeholder="e.g. Navgraha Yantra" required>
+        </label>
+
+        <label>
+          <span class="field-label"><span class="required-star">*</span> SKU</span>
+          <input type="text" name="productSku" [(ngModel)]="form.sku" maxlength="40" placeholder="e.g. ASTRO-YNT-001"
+            required>
+        </label>
+
+        <label>
+          <span class="field-label"><span class="required-star">*</span> Price (₹)</span>
+          <input type="number" name="productPrice" [(ngModel)]="form.price" min="0.01" step="0.01" placeholder="0.00"
+            required>
+        </label>
+
+        @if (editingProductId === null) {
+        <label>
+          <span class="field-label"><span class="required-star">*</span> Initial Stock</span>
+          <input type="number" name="productStock" [(ngModel)]="form.stock" min="0" max="1000000" step="1"
+            placeholder="0" required>
+        </label>
+        } @else {
+        <div class="current-stock-field">
+          <div class="current-stock-header">
+            <span class="field-label"><span class="required-star">*</span> Current Stock</span>
+            <a routerLink="/admin/inventory" class="inventory-quick-link">Inventory Management →</a>
+          </div>
+          <input type="number" name="productStock" [(ngModel)]="form.stock" min="0" max="1000000" step="1" required>
+        </div>
+        }
+
+        <label>
+          <span class="field-label"><span class="required-star">*</span> Category</span>
+          <select name="productCategory" [(ngModel)]="form.categoryId" (ngModelChange)="onCategoryChange($event)"
+            required>
+            <option value="" disabled>-- Select Category --</option>
+            @for (cat of categories; track cat.id) {
+            <option [value]="cat.id">{{ cat.name }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="image-upload-field">
+          <span class="field-label">Product Image (Optional)</span>
+          <input type="file" accept="image/*" (change)="onImageSelected($event)">
+          <small>Upload PNG, JPG, WebP, or SVG (up to 5 MB).</small>
+        </label>
+
+        <!-- NOTE: The Image URL field has been removed as requested -->
+
+        <div class="description-field rich-editor-field">
+          <label class="rich-editor-label">
+            <span class="field-label"><span class="required-star">*</span> Description</span>
+          </label>
+          <div class="rich-editor-wrapper">
+            <div class="editor-toolbar" role="toolbar" aria-label="Rich text formatting">
+              <button type="button" class="toolbar-btn" (click)="execEditorCmd('bold')" title="Bold"><b>B</b></button>
+              <button type="button" class="toolbar-btn" (click)="execEditorCmd('italic')"
+                title="Italic"><i>I</i></button>
+              <button type="button" class="toolbar-btn" (click)="execEditorCmd('underline')"
+                title="Underline"><u>U</u></button>
+              <span class="toolbar-divider"></span>
+              <button type="button" class="toolbar-btn" (click)="execEditorFormat('h3')" title="Heading 3">H3</button>
+              <button type="button" class="toolbar-btn" (click)="execEditorFormat('h4')" title="Heading 4">H4</button>
+              <button type="button" class="toolbar-btn" (click)="execEditorFormat('p')"
+                title="Normal Paragraph">Paragraph</button>
+              <span class="toolbar-divider"></span>
+              <button type="button" class="toolbar-btn" (click)="execEditorCmd('insertUnorderedList')"
+                title="Bullet List">• List</button>
+              <button type="button" class="toolbar-btn" (click)="execEditorCmd('insertOrderedList')"
+                title="Numbered List">1. List</button>
+              <button type="button" class="toolbar-btn" (click)="execEditorFormat('blockquote')" title="Quote">“
+                Quote</button>
+              <span class="toolbar-divider"></span>
+              <button type="button" class="toolbar-btn clear-btn" (click)="execEditorCmd('removeFormat')"
+                title="Clear Formatting">✕ Clear</button>
+            </div>
+            <div #richEditor class="rich-editor-content" contenteditable="true" role="textbox" aria-multiline="true"
+              (input)="onEditorInput()" (blur)="onEditorBlur()"
+              data-placeholder="Enter rich product description, spiritual significance, and usage details...">
+            </div>
+          </div>
+          <small class="editor-hint">Format with bold, italic, headings, bullet lists, and quotes.</small>
+        </div>
+
+
+      </div>
+
+      @if (imagePreview) {
+      <div class="image-preview-wrapper">
+        <span>Image Preview:</span>
+        <img class="image-preview" [src]="resolveImageUrl(imagePreview)" [alt]="form.name || 'Preview'">
+      </div>
+      }
+
+      <div class="form-actions">
+        <button class="primary-btn submit-btn" type="submit" [disabled]="isSaving || imageUploadPending">
+          {{ isSaving ? 'Saving to Database...' : imageUploadPending ? 'Uploading Image...' : editingProductId === null
+          ? 'Save & Create Product' : 'Save Changes' }}
+        </button>
+        <button class="cancel-button" type="button" (click)="closeForm()" [disabled]="isSaving">Cancel</button>
+      </div>
+    </form>
+  </section>
+  }
+
+  <!-- Products List in Clean Table Format -->
+  <section class="product-table-card">
+    <div class="table-header-row">
+      <div class="table-title">
+        <h2>All Products <span>({{ filteredProducts.length }})</span></h2>
+      </div>
+      <div class="table-tools">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" [(ngModel)]="searchTerm" placeholder="Search by name, SKU, or category..."
+            class="search-input">
+          @if (searchTerm) {
+          <button type="button" class="clear-search-btn" (click)="searchTerm = ''">✕</button>
+          }
+        </div>
+        <button class="refresh-btn" type="button" (click)="loadProducts()" [disabled]="isLoading"
+          title="Refresh from MongoDB">
+          ↻ {{ isLoading ? 'Loading...' : 'Refresh' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="product-admin-table">
+        <thead>
+          <tr>
+            <th class="th-img">Image</th>
+            <th class="th-product">Product Details</th>
+            <th class="th-cat">Category</th>
+            <th class="th-price">Price</th>
+            <th class="th-stock">Stock</th>
+            <th class="th-status">Status</th>
+            <th class="th-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (product of filteredProducts; track product._id) {
+          <tr [class.inactive-row]="product.active === false">
+            <td class="td-img">
+              <img [src]="getProductImage(product)" [alt]="product.name" class="product-thumb">
+            </td>
+            <td class="td-product">
+              <div class="product-info-cell">
+                <strong class="product-name-title">{{ product.name }}</strong>
+                <div class="product-sub-meta">
+                  <span class="sku-tag">SKU: {{ product.sku || 'N/A' }}</span>
+                  @if (product.rating) {
+                  <span class="rating-tag" style="color: #b99a45; font-size: 11px; font-weight: 600; margin-left: 6px;">
+                    ★ {{ product.rating }} ({{ product.reviewCount || 0 }})
+                  </span>
+                  }
+                  <p class="product-desc-snippet">{{ product.description }}</p>
+                </div>
+              </div>
+            </td>
+            <td class="td-cat">
+              <span class="cat-pill">{{ product.category }}</span>
+            </td>
+            <td class="td-price">
+              <span class="price-val">₹{{ product.price | number:'1.2-2' }}</span>
+            </td>
+            <td class="td-stock">
+              <span class="stock-badge" [class.stock-out]="product.stock <= 0"
+                [class.stock-low]="product.stock > 0 && product.stock <= 5">
+                {{ product.stock }} in stock
+              </span>
+            </td>
+            <td class="td-status">
+              <span class="status-indicator" [class.status-active]="product.active !== false"
+                [class.status-inactive]="product.active === false">
+                {{ product.active === false ? 'Deactivated' : product.stock > 0 ? 'Active' : 'Out of Stock' }}
+              </span>
+            </td>
+            <td class="td-actions">
+              <div class="action-buttons-group">
+                <button type="button" class="btn-action btn-edit" (click)="editProduct(product)" title="Edit product">
+                  Edit
+                </button>
+                @if (product.active === false) {
+                <button type="button" class="btn-action btn-reactivate" (click)="reactivateProduct(product)"
+                  title="Reactivate product in store">
+                  Reactivate
+                </button>
+                } @else {
+                <button type="button" class="btn-action btn-deactivate" (click)="deactivateProduct(product)"
+                  title="Deactivate and hide from store">
+                  Deactivate
+                </button>
+                }
+                <button type="button" class="btn-action btn-delete" (click)="deleteProduct(product)"
+                  title="Permanently delete from database">
+                  Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="7" class="empty-table-cell">
+              <div class="empty-table-message">
+                @if (isLoading) {
+                <p>Loading products from MongoDB...</p>
+                } @else if (searchTerm) {
+                <p>No products match your search "{{ searchTerm }}".</p>
+                <button type="button" class="cancel-button" (click)="searchTerm = ''">Clear Search</button>
+                } @else {
+                <p>No products found in the database. Use the "Add Product" button above to add a product.</p>
+                }
+              </div>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>

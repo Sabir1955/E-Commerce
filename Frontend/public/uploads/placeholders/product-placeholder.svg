@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#20233B" />
+      <stop offset="50%" stop-color="#30272A" />
+      <stop offset="100%" stop-color="#141624" />
+    </linearGradient>
+    <radialGradient id="goldGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#B99A45" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#B99A45" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="600" height="600" fill="url(#bgGrad)" />
+  <circle cx="300" cy="270" r="180" fill="url(#goldGlow)" />
+
+  <!-- Sacred Geometry / Celestial Ring -->
+  <circle cx="300" cy="270" r="140" fill="none" stroke="#D8B88E" stroke-width="1.5" stroke-dasharray="4,6" opacity="0.6" />
+  <circle cx="300" cy="270" r="110" fill="none" stroke="#B99A45" stroke-width="2" opacity="0.8" />
+  <polygon points="300,185 365,310 235,310" fill="none" stroke="#B99A45" stroke-width="2" opacity="0.7" />
+  <polygon points="300,355 365,230 235,230" fill="none" stroke="#B99A45" stroke-width="2" opacity="0.7" />
+
+  <!-- Center Gem / Star -->
+  <circle cx="300" cy="270" r="28" fill="#8F1830" stroke="#D8B88E" stroke-width="2.5" />
+  <polygon points="300,248 306,264 322,270 306,276 300,292 294,276 278,270 294,264" fill="#D8B88E" />
+
+  <!-- Outer Orbit Nodes -->
+  <circle cx="300" cy="130" r="5" fill="#D8B88E" />
+  <circle cx="300" cy="410" r="5" fill="#D8B88E" />
+  <circle cx="160" cy="270" r="5" fill="#D8B88E" />
+  <circle cx="440" cy="270" r="5" fill="#D8B88E" />
+
+  <!-- Labels -->
+  <text x="300" y="480" text-anchor="middle" font-family="'Cinzel', 'Trajan Pro', Georgia, serif" font-size="22" font-weight="600" letter-spacing="4" fill="#D8B88E">ASTROLOGY PRODUCT</text>
+  <text x="300" y="512" text-anchor="middle" font-family="'Inter', sans-serif" font-size="13" font-weight="400" letter-spacing="2" fill="#B99A45">AUTHENTIC VEDIC COLLECTION</text>
+</svg>

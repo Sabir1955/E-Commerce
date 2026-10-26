@@ -1,0 +1,705 @@
+<div class="consultations-admin">
+  <!-- Page Header -->
+  <header class="admin-header">
+    <div class="header-titles">
+      <div class="sacred-tag">
+        <span>🪐</span> 1-ON-1 ASTROLOGY · परामर्श प्रबंधन <span>✦</span>
+      </div>
+      <h1>Consultations &amp; Meet Management</h1>
+      <p class="subtitle">
+        Review customer booking requests, accept or reject sessions, set online fees, and oversee Google Meet &amp;
+        Patna office consultations.
+      </p>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn-settings-gold" (click)="openSettingsModal()">
+        <span class="icon">⚙️</span> Settings
+      </button>
+    </div>
+  </header>
+
+  <!-- Notification Alerts -->
+  @if (bookingSuccessMessage) {
+  <div class="alert alert-success" role="alert">
+    <span>✓</span> {{ bookingSuccessMessage }}
+  </div>
+  }
+  @if (bookingErrorMessage) {
+  <div class="alert alert-danger" role="alert">
+    <span>⚠</span> {{ bookingErrorMessage }}
+  </div>
+  }
+
+  <!-- Filters Toolbar -->
+  <section class="toolbar">
+    <div class="filter-group">
+      <label for="status-filter">Booking Status</label>
+      <select id="status-filter" [(ngModel)]="bookingStatusFilter" (change)="loadBookings()" class="form-control-dark">
+        <option value="">All Statuses</option>
+        <option value="pending_admin_approval">Pending Admin Approval</option>
+        <option value="approved_pending_payment">Approved (Pending Payment)</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="completed">Completed</option>
+        <option value="rejected">Rejected (Released)</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="mode-filter">Consultation Mode</label>
+      <select id="mode-filter" [(ngModel)]="bookingModeFilter" (change)="loadBookings()" class="form-control-dark">
+        <option value="">All Modes</option>
+        <option value="online">Online (Google Meet)</option>
+        <option value="offline">Offline (Patna Office Visit)</option>
+      </select>
+    </div>
+
+    <div class="filter-group search-group">
+      <label for="search-input">Search Bookings</label>
+      <input id="search-input" type="text" [(ngModel)]="searchQuery" (keyup.enter)="loadBookings()"
+        placeholder="Search by customer, mobile, booking #..." class="form-control-dark">
+    </div>
+
+    <div class="filter-action">
+      <button type="button" class="btn-outline-gold" (click)="loadBookings()">
+        🔍 Refresh
+      </button>
+    </div>
+  </section>
+
+  <!-- Loading State -->
+  @if (isLoadingBookings) {
+  <div class="loading-state">
+    <div class="cosmic-spinner"></div>
+    <p>Loading consultation bookings...</p>
+  </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoadingBookings && bookings.length === 0) {
+  <div class="empty-state">
+    <div class="empty-icon">🪐</div>
+    <h3>No Consultation Bookings Found</h3>
+    <p>No bookings match the selected criteria.</p>
+  </div>
+  }
+
+  <!-- Consultation Requests Clean Table (Only Essential Information) -->
+  @if (!isLoadingBookings && bookings.length > 0) {
+  <section class="table-container-card">
+    <div class="table-responsive">
+      <table class="consultations-table">
+        <thead>
+          <tr>
+            <th class="col-booking-id">Booking ID</th>
+            <th class="col-customer">Customer Name</th>
+            <th class="col-mode">Mode</th>
+            <th class="col-duration">Duration</th>
+            <th class="col-datetime">Appointment Date &amp; Time</th>
+            <th class="col-status">Status</th>
+            <th class="col-action text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (b of bookings; track b.id) {
+          <tr class="table-row">
+            <td class="col-booking-id">
+              <span class="booking-id-chip">#{{ b.bookingNumber }}</span>
+            </td>
+            <td class="col-customer">
+              <div class="customer-info-cell">
+                <strong>{{ b.customerName || 'Customer' }}</strong>
+                @if (b.customerMobile) {
+                <small class="cell-sub">📞 {{ b.customerMobile }}</small>
+                }
+              </div>
+            </td>
+            <td class="col-mode">
+              <span class="mode-pill" [class.offline]="b.consultationMode === 'offline'">
+                {{ b.consultationMode === 'offline' ? '🏛️ Offline' : '📹 Online' }}
+              </span>
+            </td>
+            <td class="col-duration">
+              <span class="duration-badge">{{ b.durationMinutes }}m</span>
+            </td>
+            <td class="col-datetime">
+              <div class="datetime-cell">
+                <span class="cell-date">🗓️ {{ b.scheduledDate | date:'mediumDate' }}</span>
+                <small class="cell-sub">{{ b.startTime }} - {{ b.endTime }}</small>
+              </div>
+            </td>
+            <td class="col-status">
+              <span class="status-pill" [ngClass]="getStatusClass(b)">
+                {{ getStatusText(b) }}
+              </span>
+            </td>
+            <td class="col-action text-right">
+              <button type="button" class="btn-view-details" (click)="openDetailsModal(b)">
+                👁️ View Details
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+  }
+
+  <!-- View Details Modal (Displays All Details for Specific Consultation Request) -->
+  @if (showDetailsModal && selectedBookingForDetails) {
+  <div class="modal-backdrop" (click)="closeDetailsModal()">
+    <div class="modal-card modal-card-wide" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <div>
+          <div class="modal-sacred-subtitle">CONSULTATION BOOKING DETAILS</div>
+          <h2>Booking #{{ selectedBookingForDetails.bookingNumber }}</h2>
+        </div>
+        <button type="button" class="btn-close" (click)="closeDetailsModal()">✕</button>
+      </header>
+
+      <div class="modal-body details-modal-body">
+        <!-- Top Status Row -->
+        <div class="details-top-banner">
+          <div class="dtb-left">
+            <span class="mode-pill" [class.offline]="selectedBookingForDetails.consultationMode === 'offline'">
+              {{ selectedBookingForDetails.consultationMode === 'offline' ? '🏛️ Offline (Patna Office Visit)' : '📹
+              Online (Google Meet)' }}
+            </span>
+            <span class="status-pill" [ngClass]="getStatusClass(selectedBookingForDetails)">
+              {{ getStatusText(selectedBookingForDetails) }}
+            </span>
+          </div>
+          <div class="dtb-right">
+            <span class="created-at-sub">
+              Requested: {{ selectedBookingForDetails.createdAt | date:'medium' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="details-sections-grid">
+          <!-- Section 1: Customer Details -->
+          <div class="details-card-box">
+            <h4>👤 Customer Information</h4>
+            <div class="detail-row">
+              <span class="detail-label">Name:</span>
+              <strong class="detail-value">{{ selectedBookingForDetails.customerName || 'N/A' }}</strong>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Email:</span>
+              <span class="detail-value detail-value-break">{{ selectedBookingForDetails.customerEmail || 'N/A'
+                }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Mobile:</span>
+              <span class="detail-value">{{ selectedBookingForDetails.customerMobile || 'N/A' }}</span>
+            </div>
+            @if (selectedBookingForDetails.customerNotes) {
+            <div class="detail-notes-block">
+              <small>Birth Details / Question:</small>
+              <p>{{ selectedBookingForDetails.customerNotes }}</p>
+            </div>
+            }
+          </div>
+
+          <!-- Section 2: Consultation Session Details -->
+          <div class="details-card-box">
+            <h4>🪐 Session Details</h4>
+            <div class="detail-row">
+              <span class="detail-label">Service:</span>
+              <strong class="detail-value">{{ selectedBookingForDetails.serviceName || '1-on-1 Astrology Consultation'
+                }}</strong>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Astrologer:</span>
+              <strong class="detail-value">{{ selectedBookingForDetails.astrologerName || 'Astro Poonam Vaish Mam'
+                }}</strong>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Scheduled Date:</span>
+              <strong class="detail-value">🗓️ {{ selectedBookingForDetails.scheduledDate | date:'fullDate' }}</strong>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Preferred Time:</span>
+              <strong class="detail-value">🕒 {{ selectedBookingForDetails.startTime }} – {{
+                selectedBookingForDetails.endTime }}</strong>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Duration:</span>
+              <span class="detail-value">{{ selectedBookingForDetails.durationMinutes }} Minutes</span>
+            </div>
+          </div>
+
+          <!-- Section 3: Amount & Payment Status -->
+          <div class="details-card-box">
+            <h4>💳 Amount &amp; Payment Status</h4>
+            <div class="detail-row">
+              <span class="detail-label">Consultation Fee:</span>
+              <strong class="detail-value fee-highlight">
+                @if (selectedBookingForDetails.consultationMode === 'offline') {
+                In-Person (Collected at Office)
+                } @else if (selectedBookingForDetails.fee && selectedBookingForDetails.fee > 0) {
+                ₹{{ selectedBookingForDetails.fee }}
+                } @else {
+                Pending Fee Approval
+                }
+              </strong>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Payment Status:</span>
+              <span class="pay-status-pill" [class.paid]="selectedBookingForDetails.paymentStatus === 'paid'">
+                {{ (selectedBookingForDetails.paymentStatus || 'pending') | uppercase }}
+              </span>
+            </div>
+            @if (selectedBookingForDetails.paymentTransactionId) {
+            <div class="detail-row">
+              <span class="detail-label">Transaction ID:</span>
+              <span class="detail-value detail-value-break txn-code">{{ selectedBookingForDetails.paymentTransactionId
+                }}</span>
+            </div>
+            }
+            @if (selectedBookingForDetails.paymentGatewayOrderId) {
+            <div class="detail-row">
+              <span class="detail-label">Gateway Order:</span>
+              <span class="detail-value detail-value-break txn-code">{{ selectedBookingForDetails.paymentGatewayOrderId
+                }}</span>
+            </div>
+            }
+          </div>
+
+          <!-- Section 4: Venue / Video Meeting Link -->
+          <div class="details-card-box">
+            @if (selectedBookingForDetails.consultationMode === 'offline') {
+            <h4>🏛️ Physical Office Venue (Patna)</h4>
+            <div class="offline-venue-admin">
+              <strong>{{ officeForm.officeName }}</strong>
+              <p class="venue-addr">{{ selectedBookingForDetails.officeAddress || officeForm.officeAddress }}</p>
+              <a [href]="selectedBookingForDetails.officeMapsUrl || officeForm.officeMapsUrl" target="_blank"
+                rel="noopener noreferrer" class="link-maps">
+                📍 Open Patna Office on Google Maps ↗
+              </a>
+              <div class="no-meet-notice">
+                <small>✓ In-person offline consultation — Payment collected during consultation. No video link
+                  required.</small>
+              </div>
+            </div>
+            } @else {
+            <h4>🎥 Google Meet Video Link</h4>
+            @if (selectedBookingForDetails.googleMeetLink) {
+            <div class="meet-available">
+              <a [href]="selectedBookingForDetails.googleMeetLink" target="_blank" rel="noopener noreferrer"
+                class="btn-meet-join">
+                <span>📹</span> Join Google Meet
+              </a>
+              <button type="button" class="btn-copy-link" (click)="openMeetLinkModal(selectedBookingForDetails)">
+                ✏️ Edit Link
+              </button>
+            </div>
+            } @else if (selectedBookingForDetails.bookingStatus === 'pending_admin_approval') {
+            <div class="pending-admin-notice">
+              <small>⏳ Pending your approval. Set consultation fee when accepting.</small>
+            </div>
+            } @else if (selectedBookingForDetails.bookingStatus === 'approved_pending_payment') {
+            <div class="pending-admin-notice">
+              <small>💳 Customer payment pending (₹{{ selectedBookingForDetails.fee }}). Meet link can be added after
+                payment.</small>
+            </div>
+            } @else {
+            <div class="meet-pending-box">
+              <span class="badge-pending-creds">Payment Received · Meeting Link Ready</span>
+              <div class="meet-btns-row">
+                <button type="button" class="btn-set-link" (click)="openMeetLinkModal(selectedBookingForDetails)">
+                  🔗 Set Google Meet Link
+                </button>
+                <button type="button" class="btn-retry-meet" (click)="retryMeetLinkAction(selectedBookingForDetails)"
+                  [disabled]="isRetryingMeet">
+                  🔄 Auto Generate
+                </button>
+              </div>
+            </div>
+            }
+            }
+          </div>
+        </div>
+
+        <!-- Rejection / Notes / Refund if present -->
+        @if (selectedBookingForDetails.rejectionReason) {
+        <div class="rejection-box" style="margin-top: 1rem;">
+          <strong>Rejection Reason:</strong> {{ selectedBookingForDetails.rejectionReason }} (Slot released)
+        </div>
+        }
+        @if (selectedBookingForDetails.adminNotes) {
+        <div class="admin-note" style="margin-top: 1rem;">
+          <strong>Admin Notes:</strong> {{ selectedBookingForDetails.adminNotes }}
+        </div>
+        }
+        @if (selectedBookingForDetails.refundStatus) {
+        <div class="refund-box" style="margin-top: 1rem;">
+          <strong>Refund Status:</strong> {{ selectedBookingForDetails.refundStatus | titlecase }} (₹{{
+          selectedBookingForDetails.refundAmount || selectedBookingForDetails.fee }})
+        </div>
+        }
+      </div>
+
+      <footer class="modal-footer">
+        <div class="details-actions-left">
+          @if (selectedBookingForDetails.bookingStatus === 'pending_admin_approval' ||
+          selectedBookingForDetails.bookingStatus === 'pending_approval') {
+          <button type="button" class="btn-confirm" (click)="openAcceptModal(selectedBookingForDetails)">
+            ✓ Accept Booking
+          </button>
+          <button type="button" class="btn-reject" (click)="openRejectModal(selectedBookingForDetails)">
+            ✕ Reject Booking
+          </button>
+          }
+
+          @if (selectedBookingForDetails.bookingStatus === 'approved_pending_payment' || selectedBookingForDetails.bookingStatus === 'confirmed') {
+          <span class="badge-status-accepted">
+            ✓ Accepted (@if (selectedBookingForDetails.bookingStatus === 'approved_pending_payment') { Awaiting Customer Payment } @else { Confirmed })
+          </span>
+          }
+
+          @if (selectedBookingForDetails.bookingStatus === 'rejected') {
+          <span class="badge-status-rejected">
+            ✕ Booking Rejected
+          </span>
+          }
+        </div>
+        <button type="button" class="btn-back" (click)="closeDetailsModal()">Close</button>
+      </footer>
+    </div>
+  </div>
+  }
+
+  <!-- Accept Booking Modal -->
+  @if (showAcceptModal && selectedBookingForAccept) {
+  <div class="modal-backdrop" (click)="closeAcceptModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h2>Accept Consultation Booking</h2>
+        <button type="button" class="btn-close" (click)="closeAcceptModal()">✕</button>
+      </header>
+      <div class="modal-body">
+        <p>
+          You are accepting booking <strong>#{{ selectedBookingForAccept.bookingNumber }}</strong> for <strong>{{
+            selectedBookingForAccept.customerName }}</strong>.
+        </p>
+        <div class="accept-summary-box">
+          <p><strong>Mode:</strong> {{ selectedBookingForAccept.consultationMode === 'offline' ? '🏛️ Offline (Patna
+            Office Visit)' : '📹 Online (Google Meet)' }}</p>
+          <p><strong>Date &amp; Time:</strong> {{ selectedBookingForAccept.scheduledDate | date:'mediumDate' }} · {{
+            selectedBookingForAccept.startTime }} - {{ selectedBookingForAccept.endTime }}</p>
+          <p><strong>Duration:</strong> {{ selectedBookingForAccept.durationMinutes }} Minutes</p>
+        </div>
+
+        @if (selectedBookingForAccept.consultationMode === 'online') {
+        <div class="form-group amount-group">
+          <label>Set Consultation Amount (INR) *</label>
+          <div class="input-with-symbol">
+            <span class="currency-symbol">₹</span>
+            <input type="number" [(ngModel)]="acceptAmount" min="1" class="form-control-dark"
+              placeholder="Enter consultation fee">
+          </div>
+
+
+        </div>
+        } @else {
+        <div class="offline-confirm-notice">
+          <p>✓ <strong>Offline Consultation:</strong> No online payment is required. The appointment will be confirmed
+            immediately at the Patna office.</p>
+          <p><small>{{ officeForm.officeAddress }}</small></p>
+        </div>
+        }
+
+        <div class="form-group">
+          <label>Admin Notes / Instructions (Optional)</label>
+          <textarea [(ngModel)]="acceptNotes" rows="2" class="form-control-dark"
+            placeholder="Any special notes or preparation guidance for this session..."></textarea>
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="btn-back" (click)="closeAcceptModal()">Cancel</button>
+        <button type="button" class="btn-confirm" (click)="confirmAcceptAction()" [disabled]="isAccepting">
+          {{ isAccepting ? 'Accepting...' : '✓ Confirm &amp; Accept Booking' }}
+        </button>
+      </footer>
+    </div>
+  </div>
+  }
+
+  <!-- Reject Booking Modal -->
+  @if (showRejectModal && selectedBookingForReject) {
+  <div class="modal-backdrop" (click)="closeRejectModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h2>Reject Consultation Booking</h2>
+        <button type="button" class="btn-close" (click)="closeRejectModal()">✕</button>
+      </header>
+      <div class="modal-body">
+        <p>
+          Rejecting booking <strong>#{{ selectedBookingForReject.bookingNumber }}</strong> for <strong>{{
+            selectedBookingForReject.customerName }}</strong>.
+        </p>
+        <div class="release-slot-alert">
+          <span>ℹ️</span>
+          <div>
+            <strong>Slot Will Be Released:</strong>
+            <p>Rejecting this booking will immediately free the time slot ({{ selectedBookingForReject.scheduledDate |
+              date:'mediumDate' }} at {{ selectedBookingForReject.startTime }}) so other customers can book it.</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Reason for Rejection *</label>
+          <textarea [(ngModel)]="rejectionReason" rows="3" class="form-control-dark"
+            placeholder="e.g. Astrologer unavailable at this time, slot collision, please select another slot..."></textarea>
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="btn-back" (click)="closeRejectModal()">Back</button>
+        <button type="button" class="btn-reject" (click)="confirmRejectAction()" [disabled]="isRejecting">
+          {{ isRejecting ? 'Rejecting...' : '✕ Reject &amp; Release Slot' }}
+        </button>
+      </footer>
+    </div>
+  </div>
+  }
+
+  <!-- Manual Meet Link Modal -->
+  @if (showMeetLinkModal && selectedBookingForMeet) {
+  <div class="modal-backdrop" (click)="closeMeetLinkModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h2>Edit Google Meet Conference Link</h2>
+        <button type="button" class="btn-close" (click)="closeMeetLinkModal()">✕</button>
+      </header>
+      <div class="modal-body">
+        <p>Update Google Meet link for booking #{{ selectedBookingForMeet.bookingNumber }}:</p>
+        <div class="form-group">
+          <label>Google Meet URL *</label>
+          <input type="text" [(ngModel)]="manualMeetLink" class="form-control-dark"
+            placeholder="https://meet.google.com/xxx-yyyy-zzz">
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="btn-back" (click)="closeMeetLinkModal()">Cancel</button>
+        <button type="button" class="btn-gold" (click)="saveManualMeetLink()" [disabled]="isSavingMeetLink">
+          {{ isSavingMeetLink ? 'Saving...' : 'Save Link' }}
+        </button>
+      </footer>
+    </div>
+  </div>
+  }
+
+  <!-- Issue Refund Modal -->
+  @if (showRefundModal && selectedBookingForRefund) {
+  <div class="modal-backdrop" (click)="closeRefundModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h2>Process Payment Refund</h2>
+        <button type="button" class="btn-close" (click)="closeRefundModal()">✕</button>
+      </header>
+      <div class="modal-body">
+        <p>
+          Initiate full refund of <strong>₹{{ selectedBookingForRefund.amountPaid || selectedBookingForRefund.fee
+            }}</strong> for booking #{{ selectedBookingForRefund.bookingNumber }}?
+        </p>
+        <div class="form-group">
+          <label>Refund Reason</label>
+          <input type="text" [(ngModel)]="refundReason" class="form-control-dark"
+            placeholder="e.g. Schedule cancellation, slot collision">
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="btn-back" (click)="closeRefundModal()">Back</button>
+        <button type="button" class="btn-refund" (click)="processRefundAction()" [disabled]="isRefunding">
+          {{ isRefunding ? 'Refunding...' : 'Confirm Refund' }}
+        </button>
+      </footer>
+    </div>
+  </div>
+  }
+
+  <!-- Consultation & Office Settings Modal -->
+  @if (showSettingsModal) {
+  <div class="modal-backdrop" (click)="closeSettingsModal()">
+    <div class="modal-card modal-card-wide settings-modal-card" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <div>
+          <div class="modal-sacred-subtitle">✦ CONFIGURATION · सेटिंग्स ✦</div>
+          <h2>⚙️ Consultation &amp; Office Settings</h2>
+        </div>
+        <button type="button" class="btn-close" (click)="closeSettingsModal()">✕</button>
+      </header>
+
+      <div class="modal-body settings-modal-body">
+        @if (settingsErrorMessage) {
+        <div class="alert alert-danger" role="alert">
+          <span>⚠</span> {{ settingsErrorMessage }}
+        </div>
+        }
+
+        @if (isLoadingSettings) {
+        <div class="loading-state">
+          <div class="cosmic-spinner"></div>
+          <p>Loading consultation settings...</p>
+        </div>
+        } @else {
+        <!-- 1. Astrologer Profile Section -->
+        <div class="settings-section-card">
+          <div class="settings-section-header">
+            <span class="section-icon">🧙</span>
+            <div>
+              <h3>Astrologer Profile Details</h3>
+              <p>Configure astrologer display name, profile photo, consultation title and organization</p>
+            </div>
+          </div>
+
+          <div class="settings-grid">
+            <div class="form-group">
+              <label>Astrologer Display Name *</label>
+              <input type="text" [(ngModel)]="settingsForm.name" class="form-control-dark"
+                placeholder="e.g. Astro Poonam Vaish Mam">
+            </div>
+
+            <div class="form-group">
+              <label>Consultation / Service Title *</label>
+              <input type="text" [(ngModel)]="settingsForm.consultationTitle" class="form-control-dark"
+                placeholder="e.g. Vedic Astrology Consultation">
+            </div>
+
+            <div class="form-group">
+              <label>Organization / Office Name *</label>
+              <input type="text" [(ngModel)]="settingsForm.organizationName" class="form-control-dark"
+                placeholder="e.g. Astro Nirvan">
+            </div>
+
+            <!-- Profile Photo Upload & Preview -->
+            <div class="form-group full-width photo-upload-group">
+              <label>Astrologer Profile Photo</label>
+              <div class="photo-uploader-flex">
+                <div class="photo-preview-wrap">
+                  <img [src]="settingsForm.photoUrl || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120'"
+                    alt="Astrologer Photo Preview" class="astrologer-avatar-preview">
+                </div>
+                <div class="photo-inputs-wrap">
+                  <div class="file-upload-action">
+                    <label class="btn-upload-file">
+                      <span>📁 Upload / Change Photo</span>
+                      <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml" (change)="onPhotoSelected($event)" style="display: none;">
+                    </label>
+                    @if (isUploadingPhoto) {
+                    <span class="uploading-hint">⏳ Uploading photo...</span>
+                    }
+                  </div>
+                  <small class="field-hint">Or paste an image URL:</small>
+                  <input type="text" [(ngModel)]="settingsForm.photoUrl" class="form-control-dark photo-url-input"
+                    placeholder="https://... or /api/products/images/...">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label>Astrologer Bio / Consultation Description</label>
+              <textarea [(ngModel)]="settingsForm.bio" rows="2" class="form-control-dark"
+                placeholder="Brief summary of astrological experience, specialties, and guidance..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Physical Office Details Section -->
+        <div class="settings-section-card">
+          <div class="settings-section-header">
+            <span class="section-icon">🏛️</span>
+            <div>
+              <h3>Physical Office Venue Details</h3>
+              <p>Displayed for offline in-person consultations, booking summaries, and confirmed appointments</p>
+            </div>
+          </div>
+
+          <div class="settings-grid">
+            <div class="form-group">
+              <label>Office / Venue Title *</label>
+              <input type="text" [(ngModel)]="settingsForm.venueTitle" class="form-control-dark"
+                placeholder="e.g. Physical Office Venue — Patna">
+            </div>
+
+            <div class="form-group">
+              <label>Office / Astrologer Venue Name *</label>
+              <input type="text" [(ngModel)]="settingsForm.officeName" class="form-control-dark"
+                placeholder="e.g. Astro Poonam Vaish Mam — Astro Nirvan">
+            </div>
+
+            <div class="form-group full-width">
+              <label>Complete Office Address *</label>
+              <textarea [(ngModel)]="settingsForm.officeAddress" rows="2" class="form-control-dark"
+                placeholder="e.g. Shivani Apartment, Riga Road, Near Dr. Gopal Prasad Clinic, North Sri Krishna Puri"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>City *</label>
+              <input type="text" [(ngModel)]="settingsForm.officeCity" class="form-control-dark"
+                placeholder="e.g. Patna">
+            </div>
+
+            <div class="form-group">
+              <label>State *</label>
+              <input type="text" [(ngModel)]="settingsForm.officeState" class="form-control-dark"
+                placeholder="e.g. Bihar">
+            </div>
+
+            <div class="form-group">
+              <label>PIN Code *</label>
+              <input type="text" [(ngModel)]="settingsForm.officePincode" class="form-control-dark"
+                placeholder="e.g. 800001">
+            </div>
+
+            <div class="form-group full-width">
+              <div class="label-with-action">
+                <label>Google Maps Link / URL *</label>
+                <button type="button" class="btn-text-action" (click)="generateMapsUrlFromAddress()">
+                  ⚡ Auto-Generate From Address
+                </button>
+              </div>
+              <input type="text" [(ngModel)]="settingsForm.officeMapsUrl" class="form-control-dark"
+                placeholder="https://www.google.com/maps/search/?api=1&query=...">
+              @if (settingsForm.officeMapsUrl) {
+              <small class="field-hint">
+                <a [href]="settingsForm.officeMapsUrl" target="_blank" rel="noopener noreferrer" class="test-map-link">
+                  📍 Test Google Maps Link ↗
+                </a>
+              </small>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>Visiting Hours *</label>
+              <input type="text" [(ngModel)]="settingsForm.visitingHours" class="form-control-dark"
+                placeholder="e.g. 10:00 AM – 06:30 PM (IST)">
+            </div>
+
+            <div class="form-group">
+              <label>Working Days *</label>
+              <input type="text" [(ngModel)]="settingsForm.workingDays" class="form-control-dark"
+                placeholder="e.g. Monday to Saturday">
+            </div>
+
+            <div class="form-group full-width">
+              <label>Customer Instructions *</label>
+              <textarea [(ngModel)]="settingsForm.officeInstructions" rows="2" class="form-control-dark"
+                placeholder="e.g. Please arrive 10 minutes prior to your scheduled consultation slot. Carry existing Kundali birth charts or birth details."></textarea>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-back" (click)="closeSettingsModal()">Cancel</button>
+        <button type="button" class="btn-confirm" (click)="saveSettings()" [disabled]="isSavingSettings || isLoadingSettings">
+          {{ isSavingSettings ? 'Saving Settings...' : '💾 Save Consultation Settings' }}
+        </button>
+      </footer>
+    </div>
+  </div>
+  }
+</div>

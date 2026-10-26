@@ -1,0 +1,94 @@
+<main class="inventory-page">
+  <header class="inventory-header">
+    <div>
+      <p>ASTROLOGY STORE · ADMIN</p>
+      <h1>Inventory Management</h1>
+
+    </div>
+  </header>
+
+  @if (message) {
+  <p class="inventory-message" [class.error]="isError" role="status">{{ message }}</p>
+  }
+
+  <section class="inventory-table-container" aria-label="Product inventory">
+    <div class="table-responsive">
+      <table class="inventory-table">
+        <thead>
+          <tr>
+            <th class="th-product">Product</th>
+            <th class="th-category">Category</th>
+            <th class="th-stock">Current Stock</th>
+            <th class="th-status">Status</th>
+            <th class="th-set">Set Stock</th>
+            <th class="th-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows; track row.product.id) {
+          <tr class="inventory-tr" [class.tr-out-of-stock]="row.product.stock === 0">
+            <td class="td-product">
+              <div class="prod-cell">
+                @if (row.product.image) {
+                <img [src]="row.product.image" [alt]="row.product.name" class="inv-prod-img" loading="lazy" />
+                } @else {
+                <div class="inv-prod-placeholder">📦</div>
+                }
+                <div class="prod-info">
+                  <span class="inv-sku">{{ row.product.sku || 'N/A' }}</span>
+                  <strong class="inv-title">{{ row.product.name }}</strong>
+                </div>
+              </div>
+            </td>
+            <td class="td-category">
+              <span class="category-badge">{{ row.product.category }}</span>
+            </td>
+            <td class="td-stock">
+              <div class="stock-display">
+                <span class="stock-number">{{ row.product.stock }}</span>
+                <span class="stock-unit">units</span>
+              </div>
+            </td>
+            <td class="td-status">
+              <span class="stock-status-pill" [class.pill-out]="row.product.stock === 0"
+                [class.pill-unavail]="row.product.stock > 0 && !row.product.available"
+                [class.pill-avail]="row.product.stock > 0 && row.product.available">
+                @if (row.product.stock === 0) {
+                Out of stock
+                } @else if (!row.product.available) {
+                Unavailable
+                } @else {
+                Available
+                }
+              </span>
+            </td>
+            <td class="td-set">
+              <form class="set-form" (ngSubmit)="updateStock(row)">
+                <input type="number" min="0" max="1000000" class="mini-input set-input" [name]="'set-' + row.product.id"
+                  [(ngModel)]="row.targetStock" aria-label="Set exact stock" required />
+                <button type="submit" class="mini-btn btn-set">Update</button>
+              </form>
+            </td>
+            <td class="td-actions">
+              <div class="action-buttons-group">
+                <button class="table-action-btn btn-toggle" type="button"
+                  [disabled]="row.product.stock === 0 && !row.product.available" (click)="toggleAvailability(row)">
+                  {{ row.product.available ? 'Make Unavailable' : 'Make Available' }}
+                </button>
+                <button class="table-action-btn btn-out" type="button" [disabled]="row.product.stock === 0"
+                  (click)="markOutOfStock(row)">
+                  Zero Stock
+                </button>
+              </div>
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="6" class="empty-inventory">No products found in inventory.</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>

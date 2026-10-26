@@ -1,0 +1,328 @@
+<!-- HERO SECTION -->
+<section class="hero" aria-label="Welcome to Jyotish Astrology Store">
+  <div class="hero-content">
+    <div class="sacred-badge">
+      <span class="zodiac-symbol">✦</span>
+      <span>VEDIC ASTROLOGY STORE · प्रामाणिक ज्योतिष</span>
+      <span class="zodiac-symbol">✦</span>
+    </div>
+
+    <h1>
+      Harmonize Your Destiny with
+      <span class="gold-gradient-text">Cosmic Alignment</span>
+    </h1>
+
+    <p class="hero-desc">
+      Discover energized Vedic Yantras, lab-certified planetary Gemstones, and authentic Himalayan Rudraksha consecrated
+      through ancient Vedic rituals to elevate your spiritual journey.
+    </p>
+
+    <div class="hero-actions">
+      <a class="primary-btn hero-cta" routerLink="/products">
+        Explore Sacred Catalog <span>→</span>
+      </a>
+
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat-item">
+        <strong>100%</strong>
+        <span>Prana Pratishtha</span>
+      </div>
+      <div class="stat-divider">·</div>
+      <div class="stat-item">
+        <strong>Lab-Tested</strong>
+        <span>Genuine Certification</span>
+      </div>
+      <div class="stat-divider">·</div>
+      <div class="stat-item">
+        <strong>Vedic</strong>
+        <span>Ancient Tradition</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-visual" aria-hidden="true">
+    <div class="celestial-orbit">
+      <div class="zodiac-ring">
+        <span class="zodiac-glyph">♈</span>
+        <span class="zodiac-glyph">♉</span>
+        <span class="zodiac-glyph">♊</span>
+        <span class="zodiac-glyph">♋</span>
+        <span class="zodiac-glyph">♌</span>
+        <span class="zodiac-glyph">♍</span>
+        <span class="zodiac-glyph">♎</span>
+        <span class="zodiac-glyph">♏</span>
+        <span class="zodiac-glyph">♐</span>
+        <span class="zodiac-glyph">♑</span>
+        <span class="zodiac-glyph">♒</span>
+        <span class="zodiac-glyph">♓</span>
+      </div>
+      <div class="inner-mandala">
+        <div class="mandala-core">
+          <span class="om-symbol">ॐ</span>
+          <small class="jyotish-script">ज्योतिष</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VEDIC TRUST PILLARS -->
+<section class="trust-strip" aria-label="Our spiritual guarantees">
+  <div class="container trust-grid">
+    <div class="trust-card">
+      <span class="trust-icon">🪔</span>
+      <div class="trust-text">
+        <strong>Prana Pratishtha</strong>
+        <p>Vedic consecration ritual performed by experienced purohits</p>
+      </div>
+    </div>
+    <div class="trust-card">
+      <span class="trust-icon">💎</span>
+      <div class="trust-text">
+        <strong>Govt Lab Certified</strong>
+        <p>Complete gemstone and mineral authenticity certificates</p>
+      </div>
+    </div>
+    <div class="trust-card">
+      <span class="trust-icon">📦</span>
+      <div class="trust-text">
+        <strong>Sacred Packaging</strong>
+        <p>Purified, tamper-evident packaging dispatched nationwide</p>
+      </div>
+    </div>
+    <div class="trust-card">
+      <span class="trust-icon">🔒</span>
+      <div class="trust-text">
+        <strong>Secure Checkout</strong>
+        <p>Instant UPI, Cards &amp; NetBanking protected via Easebuzz</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TODAY'S VEDIC HOROSCOPE SECTION -->
+<section class="horoscope-home-section" aria-label="Today's Vedic Horoscope">
+  <div class="container">
+    <div class="section-header">
+      <p class="astrology-tagline">DAILY PLANETARY ALIGNMENTS · दैनिक राशिफल</p>
+      <h2 class="section-title">Today's Vedic Horoscope</h2>
+      <p class="section-subtitle">Real-time daily astrological readings calculated in IST (Asia/Kolkata)</p>
+      <div class="gold-accent-line"></div>
+    </div>
+
+    <!-- 12 Signs Selector Tabs -->
+    <div class="signs-scroll-bar">
+      @for (s of zodiacSigns; track s.sign) {
+        <button
+          type="button"
+          class="sign-chip"
+          [class.active]="activeSign.toLowerCase() === s.sign.toLowerCase()"
+          (click)="selectSign(s.sign)">
+          <span class="sign-glyph">{{ s.symbol }}</span>
+          <span class="sign-name">{{ s.sign }}</span>
+        </button>
+      }
+    </div>
+
+    <!-- Active Sign Reading Display -->
+    @if (isLoadingHoroscope) {
+      <div class="horoscope-loading">
+        <div class="cosmic-spinner-small"></div>
+        <span>Reading today's planetary positions...</span>
+      </div>
+    }
+
+    @if (!isLoadingHoroscope && activeHoroscope) {
+      <div class="active-horoscope-card">
+        <div class="reading-header">
+          <div class="sign-badge-wrap">
+            <span class="big-glyph">{{ getActiveSignMeta()?.symbol || '✦' }}</span>
+            <div>
+              <h3>{{ activeHoroscope.zodiacSign }}</h3>
+              <span class="dates-meta">{{ getActiveSignMeta()?.dates }} · Element: {{ getActiveSignMeta()?.element }}</span>
+            </div>
+          </div>
+          <div class="reading-date-pill">
+            🗓️ {{ horoscopeDateStr | date:'fullDate' }}
+          </div>
+        </div>
+
+        <p class="overview-prediction">{{ activeHoroscope.prediction }}</p>
+
+        <div class="aspects-grid">
+          @if (activeHoroscope.love) {
+            <div class="aspect-card">
+              <h4>❤️ Love &amp; Relationships</h4>
+              <p>{{ activeHoroscope.love }}</p>
+            </div>
+          }
+          @if (activeHoroscope.career) {
+            <div class="aspect-card">
+              <h4>💼 Career &amp; Business</h4>
+              <p>{{ activeHoroscope.career }}</p>
+            </div>
+          }
+          @if (activeHoroscope.finance) {
+            <div class="aspect-card">
+              <h4>💰 Wealth &amp; Finance</h4>
+              <p>{{ activeHoroscope.finance }}</p>
+            </div>
+          }
+          @if (activeHoroscope.health) {
+            <div class="aspect-card">
+              <h4>🌿 Health &amp; Vitality</h4>
+              <p>{{ activeHoroscope.health }}</p>
+            </div>
+          }
+        </div>
+
+        <div class="lucky-bar">
+          <div class="lucky-item">
+            <span>Lucky Number:</span>
+            <strong>{{ activeHoroscope.luckyNumber || '9' }}</strong>
+          </div>
+          <div class="lucky-divider">·</div>
+          <div class="lucky-item">
+            <span>Lucky Color:</span>
+            <strong>{{ activeHoroscope.luckyColor || 'Royal Gold' }}</strong>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (!isLoadingHoroscope && !activeHoroscope) {
+      <div class="horoscope-empty">
+        <p>Today's reading for {{ activeSign }} is being prepared by our Acharyas.</p>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- FEATURED SACRED TREASURES -->
+@if (featuredProducts.length > 0) {
+<section class="featured-section" aria-label="Featured Astrology Treasures">
+  <div class="container">
+    <div class="section-header">
+      <p class="astrology-tagline">CURATED CONSECRATIONS</p>
+      <h2 class="section-title">Sacred Highlights</h2>
+      <div class="gold-accent-line"></div>
+    </div>
+
+    <div class="featured-grid">
+      @for (product of featuredProducts; track product.id) {
+      <article class="featured-card">
+        <div class="card-media">
+          <img [src]="product.image" [alt]="product.name" loading="lazy">
+          <span class="category-pill">{{ product.category }}</span>
+        </div>
+        <div class="card-body">
+          <h3>{{ product.name }}</h3>
+          <p class="card-desc">{{ product.description }}</p>
+          <div class="card-footer">
+            <span class="price">₹{{ product.price }}</span>
+            <a class="view-btn" [routerLink]="['/product', product.id]">
+              View Details <span>→</span>
+            </a>
+          </div>
+        </div>
+      </article>
+      }
+    </div>
+  </div>
+</section>
+}
+
+<!-- MOST BOUGHT CATEGORIES SECTION -->
+<section class="categories" aria-label="Most Bought Spiritual Categories">
+  <div class="container">
+    <div class="section-header">
+      <p class="astrology-tagline">SACRED TRADITIONS</p>
+      <h2 class="section-title">Most Bought Categories</h2>
+      <div class="gold-accent-line"></div>
+    </div>
+
+    @if (categories.length > 0) {
+    <div class="category-grid">
+      @for (category of categories; track category.name) {
+      <div class="category-card" role="link" tabindex="0" (click)="navigateToCategory(category.name)"
+        (keydown.enter)="navigateToCategory(category.name)"
+        [attr.aria-label]="'Explore ' + category.name + ' products'">
+        <div class="category-icon" aria-hidden="true">{{ category.icon || '✦' }}</div>
+        <span class="sanskrit-title">{{ category.sanskrit || 'पवित्र संग्रह' }}</span>
+        <h3>{{ category.name }}</h3>
+        <p>{{ category.description }}</p>
+        <a class="category-link" routerLink="/products" [queryParams]="{ category: category.name }"
+          (click)="$event.stopPropagation()">
+          Explore Category <span>→</span>
+        </a>
+      </div>
+      }
+    </div>
+    }
+  </div>
+</section>
+<!-- 1-ON-1 CONSULTATIONS BANNER -->
+<section class="consultation-banner-section" aria-label="1-on-1 Astrology Consultation">
+  <div class="container consultation-banner-inner">
+    <div class="banner-text">
+      <div class="sacred-badge">
+        <span>🪐</span> 1-ON-1 VIDEO CONSULTATIONS <span>✦</span>
+      </div>
+      <h2>Need Personal Guidance on Kundali &amp; Career?</h2>
+      <p>
+        Speak directly with experienced Vedic scholars for Kundali analysis, marriage compatibility, career remedies, and dosha nivaran via private Google Meet sessions.
+      </p>
+      <div class="banner-features">
+        <span>✓ Live Video via Google Meet</span>
+        <span>✓ Authentic Vedic Acharyas</span>
+        <span>✓ 15, 30 &amp; 60 Minute Slots</span>
+      </div>
+      <a routerLink="/consultations" class="primary-btn consultation-cta">
+        Book 1-on-1 Consultation <span>→</span>
+      </a>
+    </div>
+    <div class="banner-visual" aria-hidden="true">
+      <div class="glowing-yantra">
+        <span class="yantra-icon">☸</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PHILOSOPHY / WHY CHOOSE US -->
+<section class="philosophy-section" aria-label="The Science of Jyotish">
+  <div class="container philosophy-inner">
+    <div class="philosophy-content">
+      <p class="astrology-tagline">ANCIENT WISDOM</p>
+      <h2>The Cosmic Science of Jyotish</h2>
+      <p>
+        In Vedic thought, the planets are cosmic manifestations of divine universal forces (Grahas). When negative
+        planetary alignments cause obstacles in life, sacred yantras, authentic rudrakshas, and tuned gemstones channel
+        positive geometric and crystalline vibrations to restore balance and peace.
+      </p>
+      <p>
+        Every article presented at Jyotish is consecrated according to traditional Vedic injunctions, honoring both
+        sacred authenticity and timeless spiritual heritage.
+      </p>
+      <a class="primary-btn" routerLink="/products">
+        Discover Your Sacred Remedial <span>✦</span>
+      </a>
+    </div>
+
+    <div class="philosophy-box">
+      <div class="shloka-card">
+        <span class="shloka-om">ॐ</span>
+        <blockquote class="sanskrit-shloka">
+          ॐ भूर्भुवः स्वः तत्सवितुर्वरेण्यं<br>
+          भर्गो देवस्य धीमहि धियो यो नः प्रचोदयात्॥
+        </blockquote>
+        <p class="shloka-translation">
+          "May the Divine Light of the Sun stimulate and illuminate our consciousness."
+        </p>
+        <span class="shloka-source">— Rigveda (3.62.10)</span>
+      </div>
+    </div>
+  </div>
+</section>

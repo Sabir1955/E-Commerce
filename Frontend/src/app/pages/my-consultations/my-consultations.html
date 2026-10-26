@@ -1,0 +1,390 @@
+<div class="my-consultations-page">
+  <div class="container">
+    <header class="page-header">
+      <div class="header-titles">
+        <div class="sacred-tag">
+          <span>🪐</span> MY VEDIC CONSULTATIONS · मेरे ज्योतिष परामर्श <span>✦</span>
+        </div>
+        <h1>My Astrology Bookings</h1>
+        <p class="subtitle">
+          View your consultation sessions with Astro Poonam Vaish Mam, complete online payments, access Google Meet
+          rooms, and view physical office visit venues.
+        </p>
+      </div>
+      <div>
+        <a routerLink="/consultations" class="btn-gold">
+          <span>+</span> Book New Session
+        </a>
+      </div>
+    </header>
+
+    @if (isLoading) {
+    <div class="loading-state">
+      <div class="cosmic-spinner"></div>
+      <p>Loading your sacred appointments...</p>
+    </div>
+    }
+
+    @if (successMessage) {
+    <div class="alert alert-success" role="alert"
+      style="background: rgba(16, 185, 129, 0.2); border: 1px solid #34D399; color: #D1FAE5; margin-bottom: 1.5rem; padding: 1rem 1.25rem; border-radius: 8px;">
+      <span>✓</span> {{ successMessage }}
+    </div>
+    }
+
+    @if (errorMessage) {
+    <div class="alert alert-danger" role="alert">
+      <span>⚠</span> {{ errorMessage }}
+    </div>
+    }
+
+    @if (!isLoading && bookings.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">🪐</div>
+      <h3>No Consultations Booked Yet</h3>
+      <p>You have not scheduled any sessions with Astro Poonam Vaish Mam. Book your first reading today.</p>
+      <a routerLink="/consultations" class="btn-gold">
+        Book Consultation <span>→</span>
+      </a>
+    </div>
+    }
+
+    @if (!isLoading && bookings.length > 0) {
+    <div class="bookings-grid">
+      @for (b of bookings; track b.id) {
+      <article class="booking-card">
+        <!-- Header Row -->
+        <div class="booking-top">
+          <div class="id-date-meta">
+            <span class="booking-number">#{{ b.bookingNumber }}</span>
+            <span class="session-time">
+              🗓️ {{ b.scheduledDate | date:'mediumDate' }} · {{ b.startTime }} - {{ b.endTime }} ({{ b.durationMinutes
+              }}m)
+            </span>
+          </div>
+          <div class="tags-row">
+            <span class="mode-tag" [class.offline]="b.consultationMode === 'offline'">
+              {{ b.consultationMode === 'offline' ? '🏛️ Offline Office Visit' : '📹 Online Google Meet' }}
+            </span>
+            <span class="status-pill" [ngClass]="getStatusClass(b)">
+              {{ getStatusLabel(b) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Main Body -->
+        <div class="booking-middle">
+          <div class="astro-profile-snippet">
+            <img
+              [src]="b.astrologerPhoto || currentAstrologer?.photoUrl || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120'"
+              [alt]="b.astrologerName || currentAstrologer?.name || 'Astro Poonam Vaish Mam'" class="astro-snippet-img">
+            <div>
+              <h4>{{ b.astrologerName || currentAstrologer?.name || 'Astro Poonam Vaish Mam' }}</h4>
+              <div class="service-name-text">{{ b.serviceName || currentAstrologer?.consultationTitle || 'Vedic Jyotish
+                Consultation' }}</div>
+              <span class="fee-text">
+                Consultation Fee:
+                @if (b.fee && b.fee > 0) {
+                <strong>₹{{ b.fee }}</strong>
+                } @else if (b.consultationMode === 'offline') {
+                <strong>No Online Fee (In-Person)</strong>
+                } @else {
+                <strong style="color: #FBBF24;">To be set by Admin</strong>
+                }
+                <span class="pay-status-pill" [class.paid]="b.paymentStatus === 'paid'">
+                  ({{ b.paymentStatus | uppercase }})
+                </span>
+              </span>
+            </div>
+          </div>
+
+          @if (b.customerNotes) {
+          <div class="notes-display">
+            <small>Notes / Birth Details:</small>
+            <p>{{ b.customerNotes }}</p>
+          </div>
+          }
+
+          <!-- STATE 1: PENDING ADMIN APPROVAL -->
+          @if (b.bookingStatus === 'pending_admin_approval' || b.bookingStatus === 'pending_approval') {
+          <div class="pending-approval-box">
+            <span class="pab-icon">⏳</span>
+            <div>
+              <strong>Awaiting Admin Review &amp; Approval</strong>
+              <p>
+                Your requested slot is saved and reserved.
+                @if (b.consultationMode === 'online') {
+                Once accepted, the administrator will set your consultation fee and you can pay here to access your
+                Google Meet link.
+                } @else {
+                Once accepted, your in-person appointment at our Patna office will be confirmed directly.
+                }
+              </p>
+            </div>
+          </div>
+          }
+
+          <!-- STATE 2: APPROVED - PAYMENT REQUIRED (ONLINE) -->
+          @if (b.bookingStatus === 'approved_pending_payment') {
+          <div class="payment-action-box">
+            <div class="pab-left">
+              <span class="pab-title">🎉 Booking Accepted by Astrologer!</span>
+              <p class="pab-desc">
+                Your Appointment has approved . Consultation fee: <strong>₹{{ b.fee }}</strong>. Complete
+                payment to secure your booking and unlock your Google Meet link.
+              </p>
+            </div>
+            <button type="button" class="btn-pay-now" [disabled]="isPaying" (click)="payNow(b)">
+              {{ isPaying && payingBookingId === b.id ? 'Opening Gateway...' : '💳 Pay Now (₹' + b.fee + ') ➔' }}
+            </button>
+          </div>
+          }
+
+          <!-- STATE 3: OFFLINE OFFICE VISIT VENUE (No Online Payment Required) -->
+          @if (b.consultationMode === 'offline') {
+          @if (b.bookingStatus === 'confirmed') {
+          <div class="offline-confirmed-banner">
+            <span class="ocb-icon">✓</span>
+            <div>
+              <strong>Appointment Confirmed at {{ defaultOffice.name }}</strong>
+              <p>
+                Your in-person consultation is confirmed for <strong>{{ b.scheduledDate | date:'mediumDate' }}</strong>
+                at <strong>{{ b.startTime }}</strong>
+                Consultation fees will be collected in person at the office during your visit.
+              </p>
+            </div>
+          </div>
+          }
+          <div class="venue-box">
+            <div class="venue-header">
+              <span>🏛️</span>
+              <strong>{{ defaultOffice.venueTitle || 'Physical Office Venue — Patna' }}</strong>
+            </div>
+            <div class="venue-name">{{ defaultOffice.name }}</div>
+            <p class="venue-address">{{ b.officeAddress || defaultOffice.address }}</p>
+            <div class="venue-actions">
+              <a [href]="b.officeMapsUrl || defaultOffice.mapsUrl" target="_blank" rel="noopener noreferrer"
+                class="btn-maps-sm">
+                📍 Open in Google Maps <span>↗</span>
+              </a>
+            </div>
+            <small class="venue-hint">ℹ️ Visiting Hours: {{ defaultOffice.visitingHours }}. {{
+              defaultOffice.instructions }}</small>
+          </div>
+          }
+
+          <!-- STATE 4: ONLINE GOOGLE MEET DETAILS (When Paid / Confirmed) -->
+          @if (b.consultationMode === 'online') {
+          @if (b.bookingStatus === 'confirmed' && b.googleMeetLink) {
+          <div class="online-box">
+            <div class="meet-ready-row">
+              <span>📹 Private Video Room Active</span>
+              <a [href]="b.googleMeetLink" target="_blank" rel="noopener noreferrer" class="btn-join-meet">
+                Join Google Meet Session <span>↗</span>
+              </a>
+            </div>
+          </div>
+          } @else if (b.bookingStatus === 'confirmed' && !b.googleMeetLink) {
+          <div class="online-box">
+            <div class="meet-pending-box">
+              <span class="pending-pill">Meeting Link Generating</span>
+              <p>Payment received. The Google Meet link will be attached shortly by administration.</p>
+            </div>
+          </div>
+          }
+          }
+
+          <!-- STATE 5: REJECTED NOTICE -->
+          @if (b.bookingStatus === 'rejected') {
+          <div class="rejection-box">
+            <div class="rejection-header">
+              <span class="rejection-icon">✕</span>
+              <strong>Consultation Request Rejected</strong>
+            </div>
+            @if (b.rejectionReason) {
+            <p class="rejection-reason"><strong>Reason:</strong> {{ b.rejectionReason }}</p>
+            }
+            <p class="rejection-prompt">
+              Your appointment request was rejected and the slot has been released. You must book another appointment.
+            </p>
+            <div class="rebook-action-row">
+              <a routerLink="/consultations" class="btn-rebook">
+                <span>+</span> Book Another Appointment ➔
+              </a>
+            </div>
+          </div>
+          }
+
+          @if (b.refundStatus) {
+          <div class="refund-box">
+            <strong>Refund Status:</strong> {{ b.refundStatus | titlecase }} (₹{{ b.refundAmount || b.fee }})
+            @if (b.refundReason) { <span> - {{ b.refundReason }}</span> }
+          </div>
+          }
+        </div>
+
+        <!-- Footer Action Row -->
+        <div class="booking-bottom">
+          @if (b.bookingStatus !== 'cancelled' && b.bookingStatus !== 'rejected' && b.bookingStatus !== 'completed' &&
+          b.bookingStatus !== 'refunded') {
+
+          }
+        </div>
+      </article>
+      }
+    </div>
+    }
+  </div>
+
+  <!-- Cancel Confirmation Modal -->
+  @if (selectedForCancel) {
+  <div class="modal-backdrop" (click)="closeCancelModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h2>Cancel Consultation Booking</h2>
+        <button type="button" class="btn-close" (click)="closeCancelModal()">✕</button>
+      </header>
+      <div class="modal-body">
+        <p>
+          Are you sure you want to cancel your consultation booking <strong>#{{ selectedForCancel.bookingNumber
+            }}</strong> with {{ selectedForCancel.astrologerName }}?
+        </p>
+
+        <div class="form-group">
+          <label for="user-cancel-reason">Reason for cancellation (optional):</label>
+          <textarea id="user-cancel-reason" [(ngModel)]="cancelReason" rows="2"
+            placeholder="e.g. Schedule conflict, desire to rebook next week..." class="form-control-dark"></textarea>
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="btn-back" (click)="closeCancelModal()">Go Back</button>
+        <button type="button" class="btn-confirm-cancel" (click)="confirmCancellation()" [disabled]="isCancelling">
+          {{ isCancelling ? 'Cancelling...' : 'Yes, Cancel Booking' }}
+        </button>
+      </footer>
+    </div>
+  </div>
+  }
+
+  <!-- Payment Gateways & Options Modal -->
+  @if (showPaymentModal && selectedBookingForPay) {
+  <div class="modal-backdrop" (click)="closePaymentModal()">
+    <div class="modal-card modal-card-payment" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <div>
+          <div class="modal-subtitle">CONSULTATION ONLINE CHECKOUT</div>
+          <h2>Select Payment Gateway</h2>
+        </div>
+        <button type="button" class="btn-close" (click)="closePaymentModal()">✕</button>
+      </header>
+
+      <div class="modal-body">
+        <!-- Booking Quick Info Summary -->
+        <div class="payment-summary-card">
+          <div class="psc-top">
+            <span class="psc-booking">Booking #{{ selectedBookingForPay.bookingNumber }}</span>
+            <span class="psc-mode">📹 Online Google Meet</span>
+          </div>
+          <div class="psc-main">
+            <div class="psc-details">
+              <strong>{{ selectedBookingForPay.serviceName || 'Vedic Astrology Consultation' }}</strong>
+              <small>{{ selectedBookingForPay.scheduledDate | date:'mediumDate' }} at {{ selectedBookingForPay.startTime
+                }} ({{ selectedBookingForPay.durationMinutes }}m)</small>
+            </div>
+            <div class="psc-fee">
+              <span class="fee-label">Consultation Fee</span>
+              <span class="fee-val">₹{{ selectedBookingForPay.fee }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="payment-gateways-section">
+          <h4 class="section-title">Available &amp; Configured Payment Gateways</h4>
+
+          <!-- Option: Easebuzz Payment Gateway -->
+          <div class="gateway-option-card" [class.selected]="selectedGateway === 'easebuzz'"
+            (click)="selectedGateway = 'easebuzz'" role="radio" [attr.aria-checked]="selectedGateway === 'easebuzz'">
+            <div class="goc-header">
+              <input type="radio" id="cg-easebuzz" name="consultationGateway" value="easebuzz"
+                [(ngModel)]="selectedGateway">
+              <div class="goc-label-wrap">
+                <label for="cg-easebuzz" class="goc-label">
+                  <span class="gateway-icon">💳</span>
+                  <div>
+                    <div class="goc-title-row">
+                      <strong>Easebuzz Payment Gateway</strong>
+                      <span class="instant-pill">⚡ Fast &amp; Secure</span>
+                    </div>
+                    <p class="goc-desc">Pay via Easebuzz with Instant UPI, Credit / Debit Cards, NetBanking, or QR code
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            @if (selectedGateway === 'easebuzz') {
+            <div class="gateway-expanded-details">
+              <div class="gateway-badges-list">
+                <span class="method-tag">⚡ Instant UPI</span>
+                <span class="method-tag">💳 Debit &amp; Credit Cards</span>
+                <span class="method-tag">🏛️ NetBanking</span>
+                <span class="method-tag">📲 QR Code</span>
+              </div>
+            </div>
+            }
+
+          </div>
+        </div>
+
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-back" (click)="closePaymentModal()" [disabled]="isPaying">Cancel</button>
+        <button type="button" class="btn-proceed-pay" (click)="proceedToPayment()" [disabled]="isPaying">
+          {{ isPaying ? 'Connecting Gateway...' : 'Proceed to Pay ₹' + selectedBookingForPay.fee + ' ➔' }}
+        </button>
+      </footer>
+    </div>
+  </div>
+  }
+
+  @if (sandboxPayment) {
+  <div class="modal-backdrop easebuzz-sandbox-backdrop" (click)="cancelEasebuzzSandbox()">
+    <section class="easebuzz-sandbox-card" (click)="$event.stopPropagation()" role="dialog" aria-modal="true"
+      aria-labelledby="easebuzz-sandbox-title">
+      <header class="easebuzz-sandbox-header">
+        <div class="easebuzz-sandbox-brand">
+          <strong>🛡️ Easebuzz</strong>
+          <span>TEST SANDBOX</span>
+        </div>
+        <button type="button" class="easebuzz-sandbox-close" (click)="cancelEasebuzzSandbox()"
+          aria-label="Close payment sandbox">✕</button>
+      </header>
+
+      <div class="easebuzz-sandbox-body">
+        <h2 id="easebuzz-sandbox-title">Easebuzz Test Checkout</h2>
+        <p class="easebuzz-sandbox-booking">Consultation #{{ sandboxPayment.bookingNumber }}</p>
+        <div class="easebuzz-sandbox-amount">
+          <span>Amount Payable</span>
+          <strong>₹{{ sandboxPayment.fee | number:'1.2-2' }}</strong>
+        </div>
+        <p class="easebuzz-sandbox-notice">
+          Easebuzz test checkout is active. Choose a result below to test the payment and consultation confirmation flow.
+          Live hosted checkout opens when valid Easebuzz merchant credentials are configured.
+        </p>
+        <div class="easebuzz-sandbox-actions">
+          <button type="button" class="easebuzz-sandbox-pay" (click)="simulateEasebuzzSuccess()">
+            Pay ₹{{ sandboxPayment.fee | number:'1.2-2' }} (Simulate Success)
+          </button>
+          <button type="button" class="easebuzz-sandbox-fail" (click)="simulateEasebuzzFailure()">
+            Simulate Payment Failure
+          </button>
+          <button type="button" class="easebuzz-sandbox-cancel" (click)="cancelEasebuzzSandbox()">
+            Cancel Transaction
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+  }
+</div>

@@ -1,0 +1,178 @@
+<main class="profile-page">
+  <header class="profile-header">
+    <div class="header-info">
+      <p class="section-tag">STORE SETTINGS &amp; CONFIGURATION</p>
+      <h1>Store Settings (Ship From Address)</h1>
+
+    </div>
+  </header>
+
+  @if (message) {
+  <div class="profile-message" [class.error]="isError" role="status">
+    <span>{{ message }}</span>
+    <button type="button" class="close-msg-btn" (click)="message = ''" aria-label="Close message">✕</button>
+  </div>
+  }
+
+  <div class="profile-layout-grid">
+    <!-- Store Address Form -->
+    <section class="form-card">
+      <div class="card-header">
+        <div class="card-icon">🏛️</div>
+        <div>
+          <h2>Store Address (Ship From)</h2>
+
+        </div>
+      </div>
+
+      <form class="address-form" (ngSubmit)="saveStoreAddress()">
+        <div class="form-grid">
+          <!-- 1. Store Name -->
+          <label>
+            <span class="field-label"><span class="required-star">*</span> Store Name</span>
+            <input type="text" name="storeName" [(ngModel)]="addressForm.storeName"
+              placeholder="e.g. Jyotish Astro Store" maxlength="100" required>
+          </label>
+
+          <!-- 2. Manager / Contact Name -->
+          <label>
+            <span class="field-label"><span class="required-star">*</span> Manager / Contact Name</span>
+            <input type="text" name="contactName" [(ngModel)]="addressForm.contactName"
+              (ngModelChange)="addressForm.fullName = addressForm.contactName" placeholder="e.g. Master Astrologer"
+              maxlength="100" required>
+          </label>
+
+          <!-- 3. Store Phone -->
+          <label>
+            <span class="field-label"><span class="required-star">*</span> Store Phone</span>
+            <input type="tel" name="phone" [(ngModel)]="addressForm.phone"
+              (ngModelChange)="addressForm.mobile = addressForm.phone" placeholder="e.g. +919876543210" maxlength="20"
+              required>
+          </label>
+
+          <!-- 4. Address Line -->
+          <label class="full-width">
+            <span class="field-label"><span class="required-star">*</span> Address Line</span>
+            <input type="text" name="addressLine" [(ngModel)]="addressForm.addressLine"
+              (ngModelChange)="addressForm.address = addressForm.addressLine"
+              placeholder="e.g. 108 Vedic Temple Marg, Near Ganga Ghat, Varanasi" maxlength="250" required>
+          </label>
+
+          <!-- 5. City -->
+          <label>
+            <span class="field-label"><span class="required-star">*</span> City</span>
+            <input type="text" name="city" [(ngModel)]="addressForm.city" placeholder="e.g. Varanasi" maxlength="60"
+              required>
+          </label>
+
+          <!-- 6. State -->
+          <label>
+            <span class="field-label"><span class="required-star">*</span> State</span>
+            <input type="text" name="state" [(ngModel)]="addressForm.state" placeholder="e.g. Uttar Pradesh"
+              maxlength="60" required>
+          </label>
+
+          <!-- 7. PIN Code -->
+          <label>
+            <span class="field-label"><span class="required-star">*</span> PIN Code</span>
+            <input type="text" name="pinCode" [(ngModel)]="addressForm.pinCode"
+              (ngModelChange)="addressForm.postalCode = addressForm.pinCode" placeholder="e.g. 221001" maxlength="12"
+              required>
+          </label>
+
+          <!-- 8. Country -->
+          <label>
+            <span class="field-label"><span class="required-star">*</span> Country</span>
+            <input type="text" name="country" [(ngModel)]="addressForm.country" placeholder="e.g. India" maxlength="50"
+              required>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <!-- Edit/Update button -->
+          <button class="secondary-btn edit-btn" type="button" (click)="enableEdit()" [disabled]="saving || loading">
+            <span class="btn-icon">✏️</span>
+            Edit / Update
+          </button>
+
+          <!-- Save button -->
+          <button class="primary-btn submit-btn" type="submit" [disabled]="saving || loading">
+            <span class="btn-icon">💾</span>
+            {{ saving ? 'Saving to MongoDB...' : 'Save' }}
+          </button>
+
+          <button class="secondary-btn reload-btn" type="button" (click)="fetchStoreAddress()"
+            [disabled]="saving || loading">
+            ↻ Reload from DB
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Live Preview Card -->
+    <aside class="preview-card">
+      <div class="preview-header">
+        <span class="preview-badge">LIVE DATABASE ADDRESS</span>
+        <h3>Official Store Dispatch Address</h3>
+
+      </div>
+
+      <div class="preview-body">
+        @if (loading) {
+        <div class="preview-loading">
+          <p>Loading address from MongoDB...</p>
+        </div>
+        } @else if (currentAddress && (currentAddress.addressLine || currentAddress.address)) {
+        <div class="address-preview-box">
+          <div class="store-brand-badge">
+            <span class="badge-icon">✦</span>
+            <strong>{{ currentAddress.storeName || addressForm.storeName || 'Jyotish Astro Store' }}</strong>
+          </div>
+
+          <div class="preview-detail-row">
+            <span class="detail-label">Manager / Contact:</span>
+            <span class="detail-val">{{ currentAddress.contactName || currentAddress.fullName || 'Master Astrologer'
+              }}</span>
+          </div>
+
+          @if (currentAddress.phone || currentAddress.mobile) {
+          <div class="preview-detail-row">
+            <span class="detail-label">Store Phone:</span>
+            <span class="detail-val">{{ currentAddress.phone || currentAddress.mobile }}</span>
+          </div>
+          }
+
+          <div class="preview-detail-row full">
+            <span class="detail-label">Address:</span>
+            <p class="address-paragraph">
+              {{ currentAddress.addressLine || currentAddress.address }}<br>
+              {{ currentAddress.city }}, {{ currentAddress.state }} - {{ currentAddress.pinCode ||
+              currentAddress.postalCode }}<br>
+              {{ currentAddress.country || 'India' }}
+            </p>
+          </div>
+
+
+        </div>
+        } @else {
+        <div class="empty-address-notice">
+          <div class="empty-icon">📍</div>
+          <p>No store address configured in MongoDB yet.</p>
+          <span>Please fill in the form and click "Save".</span>
+        </div>
+        }
+      </div>
+
+      <div class="admin-account-info">
+        <h4>Logged-in Admin</h4>
+        <div class="admin-chip">
+          <span class="admin-chip-icon">🛡️</span>
+          <div>
+            <strong>{{ currentAdmin?.name || 'Administrator' }}</strong>
+            <small>{{ currentAdmin?.email || 'admin@jyotish.com' }}</small>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>

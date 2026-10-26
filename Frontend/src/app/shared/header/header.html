@@ -1,0 +1,170 @@
+<header class="site-header">
+  <div class="header-main">
+    <a class="logo" routerLink="/" aria-label="Astro Nirvan Astrology Store home">
+      <img src="images/logo.png" alt="Astro Nirvan Logo" class="site-logo-img">
+      <span class="logo-copy">
+        <span class="logo-name">Astro Nirvan</span>
+        <span class="logo-tagline">Astrology Store</span>
+      </span>
+    </a>
+
+    <button
+      class="mobile-menu-toggle"
+      type="button"
+      [attr.aria-expanded]="mobileNavOpen"
+      [attr.aria-label]="mobileNavOpen ? 'Close main navigation' : 'Open main navigation'"
+      aria-controls="main-navigation"
+      (click)="toggleMobileNav()">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        @if (mobileNavOpen) {
+          <path d="m6 6 12 12M18 6 6 18"></path>
+        } @else {
+          <path d="M4 7h16M4 12h16M4 17h16"></path>
+        }
+      </svg>
+    </button>
+
+    <nav id="main-navigation" class="main-nav" [class.open]="mobileNavOpen" aria-label="Main navigation">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMobileNav()">Home</a>
+      <a routerLink="/products" routerLinkActive="active" (click)="closeMobileNav()">Shop</a>
+      <a routerLink="/consultations" routerLinkActive="active" (click)="closeMobileNav()">Consultation</a>
+      <a routerLink="/my-consultations" routerLinkActive="active" (click)="closeMobileNav()">My Consultations</a>
+      <a routerLink="/track-order" routerLinkActive="active" (click)="closeMobileNav()">Track Order</a>
+      @if (currentUser) {
+        <a routerLink="/order-history" routerLinkActive="active" (click)="closeMobileNav()">Order History</a>
+        <a routerLink="/returns" routerLinkActive="active" (click)="closeMobileNav()">Returns &amp; Refunds</a>
+      }
+    </nav>
+
+    <form class="search-form" (ngSubmit)="searchProducts()" role="search">
+      <label class="visually-hidden" for="site-search">Search products</label>
+      <input
+        id="site-search"
+        name="search"
+        type="search"
+        [(ngModel)]="searchText"
+        placeholder="Search astrology products..."
+        autocomplete="off">
+      <button class="search-button" type="submit" aria-label="Search products">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="10.8" cy="10.8" r="6.6"></circle>
+          <path d="m16 16 4.2 4.2"></path>
+        </svg>
+      </button>
+    </form>
+
+    <div class="header-actions">
+      @if (currentUser) {
+        <div class="notification-control">
+          <button
+            class="icon-action notification-button"
+            type="button"
+            [attr.aria-expanded]="notificationsOpen"
+            aria-haspopup="true"
+            aria-label="In-app notifications"
+            (click)="toggleNotifications()">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span class="action-label">Alerts</span>
+            @if (unreadCount > 0) {
+              <span class="count-badge notif-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+            }
+          </button>
+
+          @if (notificationsOpen) {
+            <div class="notification-menu">
+              <div class="notification-header">
+                <span class="notification-title">Notifications</span>
+                @if (unreadCount > 0) {
+                  <button type="button" class="mark-all-read-btn" (click)="markAllNotificationsAsRead()">
+                    Mark all read
+                  </button>
+                }
+              </div>
+
+              <div class="notification-list">
+                @if (loadingNotifications && inAppNotifications.length === 0) {
+                  <div class="notif-empty-state">Loading alerts...</div>
+                } @else if (inAppNotifications.length === 0) {
+                  <div class="notif-empty-state">No notifications yet.</div>
+                } @else {
+                  @for (item of inAppNotifications; track item.id) {
+                    <div
+                      class="notification-card"
+                      [class.unread]="!item.isRead"
+                      (click)="markNotificationAsRead(item)">
+                      <div class="notif-card-header">
+                        <span class="notif-type-icon">
+                          @if (item.type === 'order') { 📦 }
+                          @else if (item.type === 'consultation') { 🔮 }
+                          @else { 🔔 }
+                        </span>
+                        <span class="notif-card-title">{{ item.title }}</span>
+                        @if (!item.isRead) {
+                          <span class="unread-dot"></span>
+                        }
+                      </div>
+                      <p class="notif-card-message">{{ item.message }}</p>
+                      <span class="notif-card-time">{{ item.createdAt | date:'short' }}</span>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <a class="icon-action" routerLink="/cart" aria-label="Shopping cart">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 4h2l2.2 11.1a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 2-1.6L21 8H6"></path>
+          <circle cx="10" cy="20" r="1"></circle>
+          <circle cx="18" cy="20" r="1"></circle>
+        </svg>
+        <span class="action-label">Cart</span>
+        @if (cartService.cartCount() > 0) {
+          <span class="count-badge">{{ cartService.cartCount() }}</span>
+        }
+      </a>
+
+      @if (currentUser; as user) {
+        <div class="profile-control">
+          <button
+            class="profile-button"
+            type="button"
+            [attr.aria-expanded]="profileOpen"
+            aria-haspopup="true"
+            (click)="toggleProfile()">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="8" r="3.5"></circle>
+              <path d="M4.8 20a7.2 7.2 0 0 1 14.4 0"></path>
+            </svg>
+            <span>{{ user.name || 'Profile' }}</span>
+          </button>
+          @if (profileOpen) {
+            <div class="profile-menu">
+              <span class="profile-email">{{ user.email }}</span>
+              <a routerLink="/order-history" (click)="closeProfile()">Order history</a>
+              <a routerLink="/returns" (click)="closeProfile()">Returns &amp; Refunds</a>
+              <a routerLink="/my-consultations" (click)="closeProfile()">My Consultations</a>
+              @if (user.role === 'admin') {
+                <a routerLink="/admin" (click)="closeProfile()">Admin dashboard</a>
+              }
+              <button type="button" (click)="logout()">Log out</button>
+            </div>
+          }
+        </div>
+      } @else {
+        <a class="login-action" routerLink="/login">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="8" r="3.5"></circle>
+            <path d="M4.8 20a7.2 7.2 0 0 1 14.4 0"></path>
+          </svg>
+          <span>Login</span>
+        </a>
+      }
+    </div>
+  </div>
+</header>

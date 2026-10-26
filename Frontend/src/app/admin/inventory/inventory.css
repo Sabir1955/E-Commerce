@@ -1,0 +1,462 @@
+/* =========================================================
+   Admin Inventory Management - Astrology Brand Theme
+   Brand Palette:
+   - Warm Cream/Beige: #D8B88E (var(--cream))
+   - Deep Maroon:      #8F1830 (var(--maroon))
+   - Brick Red:        #A63A42 (var(--brick-red))
+   - Dark Navy:        #20233B (var(--navy))
+   - Muted Gold:       #B99A45 (var(--gold))
+   - Dusty Purple:     #5B4167 (var(--purple))
+   - Off White:        #F0E7D5 (var(--off-white))
+   - Dark Brown/Black: #30272A (var(--dark))
+   ========================================================= */
+
+.inventory-page {
+  flex: 1;
+  min-height: calc(100vh - 90px);
+  padding: 30px 32px 60px;
+  background: #20233B;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.inventory-header {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  color: #F0E7D5;
+}
+
+.inventory-header > div > p {
+  color: #B99A45;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.inventory-header h1 {
+  margin: 6px 0;
+  font-family: 'Cinzel', serif;
+  font-size: 32px;
+  color: #D8B88E;
+}
+
+.inventory-header span {
+  color: #F0E7D5;
+  font-size: 14px;
+}
+
+.inventory-message {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 0 18px;
+  padding: 12px 16px;
+  border: 1px solid #B99A45;
+  border-radius: 8px;
+  background: #F0E7D5;
+  color: #30272A;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.inventory-message.error {
+  border-color: #A63A42;
+  color: #8F1830;
+  background: #F0E7D5;
+}
+
+/* =========================================================
+   Table Container & Card Wrapper
+   ========================================================= */
+.inventory-table-container {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #F0E7D5;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(48, 39, 42, 0.22);
+  border: 1px solid rgba(185, 154, 69, 0.4);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.table-responsive {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  display: block;
+  box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: #B99A45 rgba(48, 39, 42, 0.08);
+}
+
+.table-responsive::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: rgba(48, 39, 42, 0.08);
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #B99A45;
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: #8F1830;
+}
+
+.inventory-table {
+  width: 100%;
+  min-width: 1100px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.inventory-table thead tr {
+  background: #30272A;
+  color: #B99A45;
+  border-bottom: 2px solid #B99A45;
+}
+
+.inventory-table th {
+  padding: 14px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #B99A45;
+  white-space: nowrap;
+}
+
+.inventory-table tbody tr {
+  border-bottom: 1px solid rgba(185, 154, 69, 0.22);
+  transition: background-color 0.15s ease;
+}
+
+.inventory-table tbody tr:hover {
+  background-color: rgba(216, 184, 142, 0.22);
+}
+
+.inventory-table tbody tr.tr-out-of-stock {
+  background-color: rgba(166, 58, 66, 0.08);
+}
+
+.inventory-table td {
+  padding: 12px 14px;
+  vertical-align: middle;
+  font-size: 13px;
+  color: #30272A;
+}
+
+/* Specific Column Widths */
+.th-product, .td-product {
+  width: 250px;
+  min-width: 250px;
+  padding-left: 18px;
+}
+
+.th-category, .td-category {
+  width: 130px;
+  min-width: 130px;
+}
+
+.th-stock, .td-stock {
+  width: 110px;
+  min-width: 110px;
+}
+
+.th-status, .td-status {
+  width: 130px;
+  min-width: 130px;
+}
+
+.th-adjust, .td-adjust {
+  width: 180px;
+  min-width: 180px;
+}
+
+.th-set, .td-set {
+  width: 150px;
+  min-width: 150px;
+}
+
+.th-actions, .td-actions {
+  width: 170px;
+  min-width: 170px;
+  padding-right: 18px;
+}
+
+/* Product Column */
+.prod-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.inv-prod-img {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #B99A45;
+  background: #F0E7D5;
+  flex-shrink: 0;
+}
+
+.inv-prod-placeholder {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  background: #D8B88E;
+  border: 1px dashed #B99A45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  color: #30272A;
+}
+
+.prod-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.inv-sku {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: #5B4167;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.inv-title {
+  font-size: 13px;
+  color: #8F1830;
+  font-weight: 700;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+/* Category Badge */
+.category-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  background: rgba(185, 154, 69, 0.2);
+  border: 1px solid #B99A45;
+  color: #30272A;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Stock Column */
+.stock-display {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.stock-number {
+  font-size: 17px;
+  font-weight: 800;
+  color: #8F1830;
+}
+
+.stock-unit {
+  font-size: 11px;
+  color: #5B4167;
+  font-weight: 500;
+}
+
+/* Status Pill */
+.stock-status-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.pill-avail {
+  background: rgba(185, 154, 69, 0.22);
+  color: #30272A;
+  border: 1px solid #B99A45;
+}
+
+.pill-unavail {
+  background: rgba(91, 65, 103, 0.16);
+  color: #5B4167;
+  border: 1px solid #5B4167;
+}
+
+.pill-out {
+  background: rgba(166, 58, 66, 0.16);
+  color: #8F1830;
+  border: 1px solid #A63A42;
+}
+
+/* Mini Forms & Inputs */
+.adjust-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quick-form,
+.set-form {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mini-input {
+  width: 58px;
+  padding: 5px 6px;
+  border: 1px solid #B99A45;
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: center;
+  background: #F0E7D5;
+  color: #30272A;
+  box-sizing: border-box;
+}
+
+.mini-input:focus {
+  outline: none;
+  border-color: #8F1830;
+  box-shadow: 0 0 0 1px #8F1830;
+}
+
+.set-input {
+  width: 66px;
+}
+
+.mini-btn {
+  padding: 5px 9px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-add {
+  background: #8F1830;
+  color: #F0E7D5;
+  border-color: #8F1830;
+}
+
+.btn-add:hover {
+  background: #A63A42;
+  border-color: #A63A42;
+}
+
+.btn-reduce {
+  background: #A63A42;
+  color: #F0E7D5;
+  border-color: #A63A42;
+}
+
+.btn-reduce:hover:not(:disabled) {
+  background: #8F1830;
+  border-color: #8F1830;
+}
+
+.btn-reduce:disabled,
+.mini-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-set {
+  background: #20233B;
+  color: #B99A45;
+  border-color: #B99A45;
+}
+
+.btn-set:hover {
+  background: #30272A;
+}
+
+/* Action Buttons Group */
+.action-buttons-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.table-action-btn {
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid #5B4167;
+  background: #F0E7D5;
+  color: #5B4167;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.table-action-btn:hover:not(:disabled) {
+  background: #5B4167;
+  color: #F0E7D5;
+}
+
+.table-action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-out {
+  color: #8F1830;
+  border-color: #A63A42;
+}
+
+.btn-out:hover:not(:disabled) {
+  background: #A63A42;
+  color: #F0E7D5;
+}
+
+.empty-inventory {
+  text-align: center;
+  padding: 36px;
+  color: #5B4167;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .inventory-page {
+    padding: 20px 16px 40px;
+  }
+}
